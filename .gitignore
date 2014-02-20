@@ -11,3 +11,10 @@
 *.lai
 *.la
 *.a
+
+#External Libraries
+lib/*
+
+#Compiled Binaries
+bin/*
+
