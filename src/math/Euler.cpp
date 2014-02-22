@@ -13,6 +13,7 @@ Euler::Euler(GLfloat x, GLfloat y, GLfloat z,const char * order){
 	this->y = y;
 	this->z = z;
 	this->order = strdup(order);
+	this->quaternion = NULL;
 }
 
 Euler::Euler(GLfloat x, GLfloat y, GLfloat z){
@@ -20,10 +21,11 @@ Euler::Euler(GLfloat x, GLfloat y, GLfloat z){
 	this->y = y;
 	this->z = z;
 	this->order = strdup("XYZ");
+	this->quaternion = NULL;
 }
 
 Euler::~Euler(){
-	delete[] (this->order);
+	delete[] this->order;
 }
 
 char* Euler::getOrder(){
@@ -35,21 +37,24 @@ GLfloat Euler::getX(){
 }
 void Euler::setX(GLfloat x){
 	this->x=x;
-	this->quaternion->setFromEuler(this,false);
+	if(this->quaternion!=NULL)
+		this->quaternion->setFromEuler(this,false);
 }
 GLfloat Euler::getY(){
 	return this->y;
 }
 void Euler::setY(GLfloat y){
 	this->y=y;
-	this->quaternion->setFromEuler(this,false);
+	if(this->quaternion!=NULL)
+		this->quaternion->setFromEuler(this,false);
 }
 GLfloat Euler::getZ(){
 	return this->z;
 }
 void Euler::setZ(GLfloat z){
 	this->z=z;
-	this->quaternion->setFromEuler(this,false);
+	if(this->quaternion!=NULL)
+		this->quaternion->setFromEuler(this,false);
 }
 
 void Euler::setFromQuaternion(Quaternion* q, const char* order, bool update){
@@ -93,6 +98,8 @@ void Euler::setFromQuaternion(Quaternion* q, const char* order, bool update){
 		//incorrect order
 		return;
 	}
+	delete this->order;
 	this->order = strdup(order);
+
 	update ? this->quaternion->setFromEuler(this,false) : (void)NULL;
 }

@@ -40,6 +40,7 @@ public:
 	GLfloat dotProduct(Quaternion* q);
 	static GLfloat dotProductQuaternion(Quaternion* q1, Quaternion* q2);
 	static Quaternion* rotationBetweenVectors(Vec3* vec1, Vec3* vec2);
+	void setEuler(Euler* euler);
 };
 
 #endif

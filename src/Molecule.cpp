@@ -66,6 +66,7 @@ void Molecule::readPDB(const char* filename){
 	      		delete x;
 	      		delete z;
 	      		Atom* atom = new Atom(element,atomMesh);
+	      		delete element;
 	      		this->atoms.push_back(atom);
 	      		this->x += atom->getMesh()->getPosition()->getX();
 	      		this->y += atom->getMesh()->getPosition()->getY();
@@ -98,14 +99,16 @@ Mesh* Molecule::createBond(Atom* a1, Atom* a2){
 	delete upVec;
 	delete destVec;
 	Vec3* position = Molecule::getBondPos(a1->getMesh()->getPosition(),a2->getMesh()->getPosition());
-	if(mesh->getPosition() != NULL){
-		//delete (mesh->getPosition());
-	}
+
 	mesh->getScale()->setX(0.5);
 	mesh->getScale()->setY(0.5);
 	mesh->getScale()->setZ(0.2);
+	Vec3* oldPos= mesh->getPosition();
 	mesh->setPosition(position);
+	delete oldPos;
+	Quaternion* oldQuat = mesh->getQuaternion();
 	mesh->setQuaternion(quat);
+	delete oldQuat;
 	return mesh;
 }
 

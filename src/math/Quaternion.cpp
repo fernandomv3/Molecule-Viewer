@@ -11,6 +11,7 @@ Quaternion::Quaternion(){
 	this->y = 0;
 	this->z = 0;
 	this->w = 1;
+	this->euler = NULL;
 }
 
 Quaternion::Quaternion(GLfloat x, GLfloat y, GLfloat z,GLfloat w){
@@ -18,26 +19,31 @@ Quaternion::Quaternion(GLfloat x, GLfloat y, GLfloat z,GLfloat w){
 	this->y = y;
 	this->z = z;
 	this->w = w;
+	this->euler = NULL;
 }
 
 void Quaternion::setX(GLfloat x){
 	this->x = x;
-	this->euler->setFromQuaternion(this,this->euler->order,false);
+	if (this->euler != NULL)
+		this->euler->setFromQuaternion(this,this->euler->order,false);
 }
 
 void Quaternion::setY(GLfloat y){
 	this->y = y;
-	this->euler->setFromQuaternion(this,this->euler->order,false);
+	if (this->euler != NULL)
+		this->euler->setFromQuaternion(this,this->euler->order,false);
 }
 
 void Quaternion::setZ(GLfloat z){
 	this->z = z;
-	this->euler->setFromQuaternion(this,this->euler->order,false);
+	if (this->euler != NULL)
+		this->euler->setFromQuaternion(this,this->euler->order,false);
 }
 
 void Quaternion::setW(GLfloat w){
 	this->w = w;
-	this->euler->setFromQuaternion(this,this->euler->order,false);
+	if (this->euler != NULL)
+		this->euler->setFromQuaternion(this,this->euler->order,false);
 }
 
 GLfloat Quaternion::getX(){
@@ -71,7 +77,8 @@ void Quaternion::setComponent(int index, GLfloat value){
 		    this->w = value;
 		    break;
 	}
-	this->euler->setFromQuaternion(this,this->euler->order,false);
+	if (this->euler != NULL)
+		this->euler->setFromQuaternion(this,this->euler->order,false);
 }
 
 GLfloat Quaternion::getComponent(int index){
@@ -180,7 +187,8 @@ Quaternion* Quaternion::multiplyQuaternions(Quaternion* q1, Quaternion* q2){
 	quat->y = q1->y * q2->w + q1->w * q2->y + q1->z * q2->x - q1->x * q2->z;
 	quat->z = q1->z * q2->w + q1->w * q2->z + q1->x * q2->y - q1->y * q2->x;
 	quat->w = q1->w * q2->w - q1->x * q2->x - q1->y * q2->y - q1->z * q2->z;
-	quat->euler->setFromQuaternion(quat,quat->euler->order,false);
+	if (quat->euler != NULL)
+		quat->euler->setFromQuaternion(quat,quat->euler->order,false);
 	return quat;
 }
 
@@ -189,7 +197,8 @@ void  Quaternion::multiply(Quaternion* q){
 	this->y = this->y * q->w + this->w * q->y + this->z * q->x - this->x * q->z;
 	this->z = this->z * q->w + this->w * q->z + this->x * q->y - this->y * q->x;
 	this->w = this->w * q->w - this->x * q->x - this->y * q->y - this->z * q->z;
-	this->euler->setFromQuaternion(this,euler->order,false);
+	if (this->euler != NULL)
+		this->euler->setFromQuaternion(this,euler->order,false);
 }
 
 GLfloat Quaternion::dotProduct(Quaternion* q){
@@ -206,14 +215,16 @@ Quaternion* Quaternion::rotationBetweenVectors(Vec3* vec1, Vec3* vec2){
 	if(vec == NULL) printf("Hola\n");
 	GLfloat term = sqrt(2*(1+e));
 	Quaternion* q = new Quaternion();
-	Euler* euler = new Euler(0.0,0.0,0.0);
-	q->euler = euler;
 	q->setX(vec->getX() * 1.0/term);
 	q->setY(vec->getY() * 1.0/term);
 	q->setZ(vec->getZ() * 1.0/term);
 	q->setW(term / 2.0);
 	delete vec;
 	return q;
+}
+
+void Quaternion::setEuler(Euler* euler){
+	this->euler = euler;
 }
 
 void Quaternion::setFromMat4(Mat4<GLfloat> mat4){
