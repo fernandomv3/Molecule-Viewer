@@ -67,13 +67,8 @@ void Object3D::setRotation(Euler* rotation){
 void Object3D::setQuaternion(Quaternion* quaternion){
 	this->quaternion = quaternion;
 	//delete previous euler in new quaternion if exists
-	/*if(quaternion->euler != NULL)
-		delete[] (quaternion->euler);*/
 	quaternion->euler= this->rotation;
 
-	//delete the previous quaternion in Object's euler if exists
-	if (this->rotation->quaternion != NULL)
-		delete[] (this->rotation->quaternion);
 	this->rotation->quaternion = quaternion;
 	quaternion->euler->setFromQuaternion(quaternion,this->rotation->order,false);
 }

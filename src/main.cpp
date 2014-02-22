@@ -129,6 +129,8 @@ void cleanUp(){
 
 int main(int argc, char** argv){
 	initializeContext();
+	int c;
+	scanf("%d",&c);
 	scene = new Scene();
 	mol = new Molecule("caffeine.pdb");
 	mol->addToScene(scene);

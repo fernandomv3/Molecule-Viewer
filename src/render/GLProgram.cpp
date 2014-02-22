@@ -1,4 +1,4 @@
-#include "render/GLprogram.h"
+#include "render/GLProgram.h"
 #include <cstdio>
 #include <string.h>
 
