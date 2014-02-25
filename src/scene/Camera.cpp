@@ -32,6 +32,7 @@ Camera::Camera():Object3D(){
 	this->projectionMatrix = new Mat4<GLfloat>(0);
 	this->worldMatrix = new Mat4<GLfloat>(0);
 	this->matricesUBO = 0;
+	this->target = NULL;
 }
 
 GLfloat* Camera::getMatricesArray(){
@@ -70,6 +71,14 @@ void Camera::updateWorldMatrix(){
 	delete scale;
 	delete rot;
 	delete translation;
+}
+
+Vec3* Camera::getTarget(){
+	return this->target;
+}
+
+void Camera::setTarget(Vec3* target){
+	this->target = target;
 }
 
 Camera::~Camera(){
