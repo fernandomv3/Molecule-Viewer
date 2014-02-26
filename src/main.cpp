@@ -88,14 +88,17 @@ bool handleEvents(){
 	Camera* camera = scene->getCamera();
 	static GLfloat rot = camera->getRotation()->getY();
 	while( SDL_PollEvent( &event ) ){
-		if(event.type == SDL_KEYDOWN ){	
-			rot -= 0.1;
-			camera->getPosition()->setY(mol->getY());
-    		camera->getPosition()->setX(12 * (sin(rot))+ mol->getX());
-    		camera->getPosition()->setZ(12 * (cos(rot))+ mol->getZ());
-		}
-		if( event.type == SDL_QUIT ){
-			return true;
+		switch(event.type){
+			case SDL_KEYDOWN:
+				rot -= 0.1;
+				camera->getPosition()->setY(mol->getY());
+	    		camera->getPosition()->setX(12 * (sin(rot))+ mol->getX());
+	    		camera->getPosition()->setZ(12 * (cos(rot))+ mol->getZ());
+				break;
+			case SDL_MOUSEMOTION:
+				break;
+			case SDL_QUIT:
+				return true;
 		}
 	}
 	return false;
