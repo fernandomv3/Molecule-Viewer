@@ -85,13 +85,14 @@ void initializeContext(){
 
 bool handleEvents(){
 	SDL_Event event;
+	Camera* camera = scene->getCamera();
+	static GLfloat rot = camera->getRotation()->getY();
 	while( SDL_PollEvent( &event ) ){
-		if(event.type == SDL_KEYDOWN ){
-			Camera* camera = scene->getCamera();	
-			camera->getRotation()->setY(camera->getRotation()->getY()- 0.1);
+		if(event.type == SDL_KEYDOWN ){	
+			rot -= 0.1;
 			camera->getPosition()->setY(mol->getY());
-    		camera->getPosition()->setX(12 * (sin(camera->getRotation()->getY()-0.1))+ mol->getX());
-    		camera->getPosition()->setZ(12 * (cos(camera->getRotation()->getY()-0.1))+ mol->getZ());
+    		camera->getPosition()->setX(12 * (sin(rot))+ mol->getX());
+    		camera->getPosition()->setZ(12 * (cos(rot))+ mol->getZ());
 		}
 		if( event.type == SDL_QUIT ){
 			return true;
@@ -130,10 +131,12 @@ void cleanUp(){
 int main(int argc, char** argv){
 	initializeContext();
 	int c;
-	scanf("%d",&c);
+	//scanf("%d",&c);
 	scene = new Scene();
 	mol = new Molecule("caffeine.pdb");
 	mol->addToScene(scene);
+	Camera* camera = scene->getCamera();
+	camera->setTarget(new Vec3(mol->getX(),mol->getY(),mol->getZ()));
 	DirectionalLight* light1 = new DirectionalLight();
 	light1->getPosition()->setX(2.0);
 	light1->getPosition()->setY(4.0);

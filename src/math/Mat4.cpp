@@ -202,22 +202,22 @@ Mat4* Mat4::lookAt(Vec3* eye, Vec3* target, Vec3* up){
 	zAxis->setY(eye->getY()-target->getY());
 	zAxis->setZ(eye->getZ()-target->getZ());
 	zAxis->normalize();
-	Vec3* xAxis = Vec3::crossProductVectors(zAxis,up);
-	xAxis->normalize();
-	Vec3* yAxis = Vec3::crossProductVectors(xAxis,zAxis);
-	yAxis->normalize();
+	Vec3* xAxis = Vec3::crossProductVectors(up,zAxis);
+
+	Vec3* yAxis = Vec3::crossProductVectors(zAxis,xAxis);
+
 
 	GLfloat* mat = lookAt->elements;
 	mat[0] = xAxis->getX();
-	mat[1] = yAxis->getX();
-	mat[2] = zAxis->getX();
+	mat[4] = yAxis->getX();
+	mat[8] = zAxis->getX();
 
-	mat[4] = xAxis->getY();
+	mat[1] = xAxis->getY();
 	mat[5] = yAxis->getY();
-	mat[6] = zAxis->getY();
+	mat[9] = zAxis->getY();
 
-	mat[8] = xAxis->getZ();
-	mat[9] = yAxis->getZ();
+	mat[2] = xAxis->getZ();
+	mat[6] = yAxis->getZ();
 	mat[10] = zAxis->getZ();
 
 	delete yAxis;
