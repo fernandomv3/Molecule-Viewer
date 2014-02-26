@@ -4,7 +4,7 @@
 #include <GL/glew.h>
 
 class Euler;
-template <class T> class Mat4;
+class Mat4;
 class Vec3;
 
 class Quaternion{
@@ -30,7 +30,7 @@ public:
 	void setComponent(int index, GLfloat value);
 	GLfloat getComponent(int index);
 	void setFromEuler(Euler* euler , bool update = true);
-	void setFromMat4(Mat4<GLfloat> mat4);
+	void setFromMat4(Mat4* mat4);
 	Quaternion * conjugate();
 	Quaternion * inverse();
 	void normalize();

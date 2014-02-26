@@ -12,7 +12,7 @@ private:
 	Euler* rotation;
 	Quaternion* quaternion;
 	Vec3* scale;
-	Mat4<GLfloat> * modelMatrix;
+	Mat4 * modelMatrix;
 public:
 	Object3D();
 	virtual ~Object3D();
@@ -22,7 +22,7 @@ public:
 	void setPosition(Vec3* position);
 	void setRotation(Euler* rotation);
 	void setScale(Vec3* scale);
-	Mat4<GLfloat> * getModelMatrix();
+	Mat4 * getModelMatrix();
 	void updateModelMatrix();
 	void setQuaternion(Quaternion* quaternion);
 	Quaternion* getQuaternion();

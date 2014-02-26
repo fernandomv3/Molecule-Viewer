@@ -227,6 +227,6 @@ void Quaternion::setEuler(Euler* euler){
 	this->euler = euler;
 }
 
-void Quaternion::setFromMat4(Mat4<GLfloat> mat4){
+void Quaternion::setFromMat4(Mat4* mat4){
 
 }

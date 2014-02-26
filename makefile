@@ -1,4 +1,5 @@
 OBJS = $(BUILDDIR)/Vec3.o \
+	   $(BUILDDIR)/Mat4.o \
        $(BUILDDIR)/Geometry.o \
        $(BUILDDIR)/GLProgram.o \
        $(BUILDDIR)/Material.o \

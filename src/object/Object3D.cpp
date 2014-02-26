@@ -6,7 +6,7 @@ Object3D::Object3D(){
 	this->rotation = new Euler(0,0,0,"XYZ");
 	this->quaternion = new Quaternion(0,0,0,1);
 	this->scale = new Vec3(1,1,1);
-	this->modelMatrix = Mat4<GLfloat>::identityMatrix();
+	this->modelMatrix = Mat4::identityMatrix();
 
 	this->rotation->quaternion = this->quaternion;
 	this->quaternion->euler=this->rotation;
@@ -77,25 +77,25 @@ void Object3D::setScale(Vec3* scale){
 	this->scale = scale;
 }
 
-Mat4<GLfloat> * Object3D::getModelMatrix(){
+Mat4 * Object3D::getModelMatrix(){
 	return this->modelMatrix;
 }
 
 void Object3D::updateModelMatrix(){
-	Mat4<GLfloat> * translation = Mat4<GLfloat>::translationMatrix(
+	Mat4 * translation = Mat4::translationMatrix(
 		this->getPosition()->getX(),
 		this->getPosition()->getY(),
 		this->getPosition()->getZ());
-	Mat4<GLfloat> * rot = Mat4<GLfloat>::rotationMatrixFromQuaternion(
+	Mat4 * rot = Mat4::rotationMatrixFromQuaternion(
 		this->getQuaternion());
 
-	Mat4<GLfloat> * scale = Mat4<GLfloat>::scaleMatrix(
+	Mat4 * scale = Mat4::scaleMatrix(
 		this->getScale()->getX(),
 		this->getScale()->getY(),
 		this->getScale()->getZ());
 	if(this->modelMatrix !=NULL)
 		delete this->modelMatrix;
-	this->modelMatrix = Mat4<GLfloat>::identityMatrix();
+	this->modelMatrix = Mat4::identityMatrix();
 	
 	this->modelMatrix->crossProduct(translation);
 	this->modelMatrix->crossProduct(rot);

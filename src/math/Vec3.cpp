@@ -1,5 +1,7 @@
 #include "math/Vec3.h"
 #include <cstdlib>
+#include <cmath>
+#include <math/Mat4.h>
 
 Vec3::Vec3(){
 
@@ -54,7 +56,7 @@ GLfloat Vec3::getComponent(int index){
 	return (GLfloat)NULL;
 }
 
-Vec3* Vec3::applyMatrix(Mat4<GLfloat>* matrix, GLfloat w){
+Vec3* Vec3::applyMatrix(Mat4* matrix, GLfloat w){
 	Vec3* vector = new Vec3();
 	GLfloat* mat = matrix->getElements();
 	vector->x = mat[0]*this->x + mat[1]*this->y + mat[2] *this->z + mat[3]*w;

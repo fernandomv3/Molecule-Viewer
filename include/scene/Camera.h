@@ -9,21 +9,22 @@
 
 class Camera : public Object3D{
 private:
-	Mat4<GLfloat> * projectionMatrix;
-	Mat4<GLfloat> * worldMatrix;
+	Mat4 * projectionMatrix;
+	Mat4 * worldMatrix;
 	Vec3* target;
 	GLuint matricesUBO;
 public:
-	Mat4<GLfloat>* getProjectionMatrix();
-	void setProjectionMatrix(Mat4<GLfloat>* mat);
-	Mat4<GLfloat>* getWorldMatrix();
-	void setWorldMatrix(Mat4<GLfloat>* mat);
+	Mat4* getProjectionMatrix();
+	void setProjectionMatrix(Mat4* mat);
+	Mat4* getWorldMatrix();
+	void setWorldMatrix(Mat4* mat);
 	void updateWorldMatrix();
 	GLuint getMatricesUBO();
 	void setMatricesUBO(GLuint ubo);
 	GLfloat* getMatricesArray();
 	Vec3* getTarget();
 	void setTarget(Vec3* target);
+	Mat4* lookAt();
 	Camera();
 	~Camera();
 };
