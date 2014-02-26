@@ -108,3 +108,20 @@ void Vec3::normalize(){
 GLfloat Vec3::length(){
 	return sqrt((this->x * this->x)+(this->y * this->y)+(this->z * this->z));
 }
+
+Vec3* Vec3::addVectors(Vec3* v1, Vec3* v2){
+	Vec3* res = new Vec3();
+	res->x = v1->x + v2->x;
+	res->y = v1->y + v2->y;
+	res->z = v1->z + v2->z;
+	return res;	
+}
+
+Vec3* Vec3::subVectors(Vec3* v1, Vec3* v2){
+	Vec3* res = new Vec3();
+	res->x = v1->x - v2->x;
+	res->y = v1->y - v2->y;
+	res->z = v1->z - v2->z;
+	return res;
+}
+
