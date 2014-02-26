@@ -198,6 +198,37 @@ public:
 		}
 		return result;
 	}
+
+	static Mat4<T>* lookAt(Vec3* eye, Vec3* target, Vec3* up){
+		Mat4<T> * lookAt = Mat4<T>::identityMatrix();
+		Vec3* zAxix = new Vec3();
+		zAxis.setX(eye.getX()-target.getX());
+		zAxis.setY(eye.getY()-target.getY());
+		zAxis.setZ(eye.getZ()-target.getZ());
+		zAxis.normalize();
+		Vec3* xAxis = Vec3::crossProductVectors(zAxis,up);
+		xAxis.normalize();
+		Vec3* yAxix = Vec3::crossProductVectors(xAxis,zAxis);
+		yAxis.normalize();
+
+		T* mat = lookAt->elements;
+		mat[0] = xAxis->getX();
+		mat[1] = yAxis->getX();
+		mat[2] = zAxis->getX();
+
+		mat[4] = xAxis->getY();
+		mat[5] = yAxis->getY();
+		mat[6] = zAxis->getY();
+
+		mat[8] = xAxis->getZ();
+		mat[9] = yAxis->getZ();
+		mat[10] = zAxis->getZ();
+
+		delete yAxis;
+		delete xAxis;
+		delete zAxis;
+		return lookAt;
+	}
 };
 
 #endif
