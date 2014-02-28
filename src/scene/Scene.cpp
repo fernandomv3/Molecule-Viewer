@@ -8,7 +8,7 @@ Scene::Scene(){
 	Mat4* mat = this->camera->getProjectionMatrix(); 
 	this->camera->setProjectionMatrix(Mat4::perspectiveMatrix(30.0, 4.0/3.0, 0.1, 100.0));
 	delete mat;
-	this->camera->getPosition()->setZ(4.0);
+	this->camera->getPosition()->setZ(12.0);
 	this->ambientLight = new Light();
 	this->ambientLight->getColor()->setRGB(0.25,0.25,0.25);
 	this->directionalLightsUBO = 0;

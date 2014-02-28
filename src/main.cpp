@@ -1,7 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
+#include <cstring>
 #include <cassert>
 
 #define NO_SDL_GLEXT
@@ -15,6 +15,8 @@
 #include "render/Renderer.h"
 #include "material/PhongMaterial.h"
 #include "Molecule.h"
+
+#define PI 3.1415927
 
 Renderer* renderer;
 Scene* scene;
@@ -85,17 +87,44 @@ void initializeContext(){
 
 bool handleEvents(){
 	SDL_Event event;
+	double radius =12;
 	Camera* camera = scene->getCamera();
 	static GLfloat rot = camera->getRotation()->getY();
+	static GLfloat theta = 0;
+	static GLfloat phi =0;
 	while( SDL_PollEvent( &event ) ){
 		switch(event.type){
 			case SDL_KEYDOWN:
 				rot -= 0.1;
 				camera->getPosition()->setY(mol->getY());
-	    		camera->getPosition()->setX(12 * (sin(rot))+ mol->getX());
-	    		camera->getPosition()->setZ(12 * (cos(rot))+ mol->getZ());
+	    		camera->getPosition()->setX(radius * (sin(rot))+ mol->getX());
+	    		camera->getPosition()->setZ(radius * (cos(rot))+ mol->getZ());
 				break;
 			case SDL_MOUSEMOTION:
+				if(event.motion.state & SDL_BUTTON(1)){
+					float deltaTheta = 2 * PI * event.motion.xrel / SCREEN_WIDTH;
+					float deltaPhi = 2 * PI * event.motion.yrel / SCREEN_HEIGHT;
+
+					Vec3* molPos = new Vec3(mol->getX(),mol->getY(),mol->getZ());
+
+					Vec3* sub = Vec3::subVectors(camera->getPosition(),molPos);
+					double x2z2 = sqrt((sub->getX()*sub->getX())+(sub->getZ()*sub->getZ()));
+
+					radius = 12;
+					//printf("%f\n",sub->length() );
+					//double theta2 = atan2(sub->getX(),sub->getZ());
+					//printf("%f\n",theta2);
+					double phi2 = atan2(x2z2,sub->getY());
+					//printf("%f\n",phi2);
+					theta+=deltaTheta;
+					phi+=deltaPhi;
+					camera->getPosition()->setX(radius*sin(phi)*sin(theta) + molPos->getX());
+					camera->getPosition()->setY(radius * cos(phi));
+					printf("%f\n",sub->length());
+					camera->getPosition()->setZ(radius*sin(phi)*cos(theta) + molPos->getZ());
+					delete sub;
+					delete molPos;
+				}
 				break;
 			case SDL_QUIT:
 				return true;
