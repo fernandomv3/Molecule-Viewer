@@ -17,6 +17,9 @@
 #include "Molecule.h"
 
 #define PI 3.1415927
+#define EPS 0.000001
+#define MAXANG PI
+#define MINANG 0
 
 Renderer* renderer;
 Scene* scene;
@@ -116,12 +119,13 @@ bool handleEvents(){
 					//printf("%f\n",theta2);
 					double phi2 = atan2(x2z2,sub->getY());
 					//printf("%f\n",phi2);
-					theta+=deltaTheta;
-					phi+=deltaPhi;
-					camera->getPosition()->setX(radius*sin(phi)*sin(theta) + molPos->getX());
-					camera->getPosition()->setY(radius * cos(phi));
-					printf("%f\n",sub->length());
-					camera->getPosition()->setZ(radius*sin(phi)*cos(theta) + molPos->getZ());
+					theta-=deltaTheta;
+
+					phi-=deltaPhi;
+					//camera->getPosition()->setX(radius*cos(phi)*sin(theta) + molPos->getX());
+					camera->getPosition()->setY(radius * sin(phi));
+					//printf("%f\n",sub->length());
+					//camera->getPosition()->setZ(radius*cos(phi)*cos(theta) + molPos->getZ());
 					delete sub;
 					delete molPos;
 				}
