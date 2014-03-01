@@ -24,7 +24,6 @@
 Renderer* renderer;
 Scene* scene;
 Molecule* mol;
-Mesh* cam;
 
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
@@ -166,14 +165,6 @@ int main(int argc, char** argv){
 	scene = new Scene();
 	mol = new Molecule("caffeine.pdb");
 	mol->addToScene(scene);
-	Geometry* camGeometry = new Geometry();
-	camGeometry->loadDataFromFile("icosphere.mesh");
-	PhongMaterial* camMaterial = new PhongMaterial();
-	cam = new Mesh(camGeometry,camMaterial);
-	cam->getScale()->setX(0.2);
-	cam->getScale()->setY(0.2);
-	cam->getScale()->setZ(0.2);
-	scene->addObject(cam);
 	Camera* camera = scene->getCamera();
 	camera->setTarget(new Vec3(mol->getX(),mol->getY(),mol->getZ()));
 	DirectionalLight* light1 = new DirectionalLight();
