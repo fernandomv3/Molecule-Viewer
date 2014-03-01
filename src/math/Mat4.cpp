@@ -197,12 +197,24 @@ Mat4 * Mat4::getTraspose(){
 
 Mat4* Mat4::lookAt(Vec3* eye, Vec3* target, Vec3* up){
 	Mat4 * lookAt = Mat4::identityMatrix();
+
 	Vec3* zAxis = new Vec3();
 	zAxis->setX(eye->getX()-target->getX());
 	zAxis->setY(eye->getY()-target->getY());
 	zAxis->setZ(eye->getZ()-target->getZ());
 	zAxis->normalize();
+	if(zAxis->length()==0){
+		zAxis->setZ(1);
+	}
+
 	Vec3* xAxis = Vec3::crossProductVectors(up,zAxis);
+	xAxis->normalize();
+	if(xAxis->length() == 0){
+		zAxis->setX(zAxis->getX()+0.0001);
+		delete xAxis;
+		xAxis = Vec3::crossProductVectors(up,zAxis);
+		xAxis->normalize();
+	}
 
 	Vec3* yAxis = Vec3::crossProductVectors(zAxis,xAxis);
 
