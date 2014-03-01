@@ -24,6 +24,7 @@
 Renderer* renderer;
 Scene* scene;
 Molecule* mol;
+Mesh* cam;
 
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
@@ -90,17 +91,15 @@ void initializeContext(){
 
 bool handleEvents(){
 	SDL_Event event;
-	double radius =12;
+	static float radius =12;
 	Camera* camera = scene->getCamera();
 	static GLfloat rot = camera->getRotation()->getY();
-	static GLfloat theta = 0;
-	static GLfloat phi =0;
 	while( SDL_PollEvent( &event ) ){
 		switch(event.type){
 			case SDL_KEYDOWN:
 				rot -= 0.1;
-				camera->getPosition()->setY(mol->getY());
-	    		camera->getPosition()->setX(radius * (sin(rot))+ mol->getX());
+				camera->getPosition()->setX(mol->getX());
+	    		camera->getPosition()->setY(radius * (sin(rot))+ mol->getY());
 	    		camera->getPosition()->setZ(radius * (cos(rot))+ mol->getZ());
 				break;
 			case SDL_MOUSEMOTION:
@@ -108,24 +107,20 @@ bool handleEvents(){
 					float deltaTheta = 2 * PI * event.motion.xrel / SCREEN_WIDTH;
 					float deltaPhi = 2 * PI * event.motion.yrel / SCREEN_HEIGHT;
 
-					Vec3* molPos = new Vec3(mol->getX(),mol->getY(),mol->getZ());
-
+					Vec3* molPos = new Vec3(mol->getX(),0,mol->getZ());
 					Vec3* sub = Vec3::subVectors(camera->getPosition(),molPos);
-					double x2z2 = sqrt((sub->getX()*sub->getX())+(sub->getZ()*sub->getZ()));
+					float x2z2 = sqrt((sub->getX()*sub->getX())+(sub->getZ()*sub->getZ()));
+					float theta = atan2(sub->getX(),sub->getZ());
+					float phi = atan2(x2z2,sub->getY());
 
-					radius = 12;
-					//printf("%f\n",sub->length() );
-					//double theta2 = atan2(sub->getX(),sub->getZ());
-					//printf("%f\n",theta2);
-					double phi2 = atan2(x2z2,sub->getY());
-					//printf("%f\n",phi2);
 					theta-=deltaTheta;
-
 					phi-=deltaPhi;
-					//camera->getPosition()->setX(radius*cos(phi)*sin(theta) + molPos->getX());
-					camera->getPosition()->setY(radius * sin(phi));
-					//printf("%f\n",sub->length());
-					//camera->getPosition()->setZ(radius*cos(phi)*cos(theta) + molPos->getZ());
+
+					phi = fmax(MINANG,fmin(MAXANG,phi));
+
+					camera->getPosition()->setX(radius*sin(phi)*sin(theta)+molPos->getX());
+					camera->getPosition()->setY(radius * cos(phi)+molPos->getY());
+					camera->getPosition()->setZ(radius*sin(phi)*cos(theta)+molPos->getZ());
 					delete sub;
 					delete molPos;
 				}
@@ -171,6 +166,14 @@ int main(int argc, char** argv){
 	scene = new Scene();
 	mol = new Molecule("caffeine.pdb");
 	mol->addToScene(scene);
+	Geometry* camGeometry = new Geometry();
+	camGeometry->loadDataFromFile("icosphere.mesh");
+	PhongMaterial* camMaterial = new PhongMaterial();
+	cam = new Mesh(camGeometry,camMaterial);
+	cam->getScale()->setX(0.2);
+	cam->getScale()->setY(0.2);
+	cam->getScale()->setZ(0.2);
+	scene->addObject(cam);
 	Camera* camera = scene->getCamera();
 	camera->setTarget(new Vec3(mol->getX(),mol->getY(),mol->getZ()));
 	DirectionalLight* light1 = new DirectionalLight();
