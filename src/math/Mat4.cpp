@@ -210,7 +210,7 @@ Mat4* Mat4::lookAt(Vec3* eye, Vec3* target, Vec3* up){
 	Vec3* xAxis = Vec3::crossProductVectors(up,zAxis);
 	xAxis->normalize();
 	if(xAxis->length() == 0){
-		zAxis->setX(zAxis->getX()+0.0001);
+		zAxis->setX(zAxis->getX()-0.0001);
 		delete xAxis;
 		xAxis = Vec3::crossProductVectors(up,zAxis);
 		xAxis->normalize();

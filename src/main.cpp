@@ -15,6 +15,7 @@
 #include "render/Renderer.h"
 #include "material/PhongMaterial.h"
 #include "Molecule.h"
+#include "math/SphericalCoord.h"
 
 #define PI 3.1415927
 #define EPS 0.000001
@@ -27,6 +28,7 @@ Molecule* mol;
 
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
+
 SDL_Window* window = NULL;
 SDL_Surface* screenSurface;
 SDL_GLContext context = NULL;
@@ -88,41 +90,46 @@ void initializeContext(){
 	}
 }
 
+//move this function as a method of Object3D
+void updateCamSphericalPosition(float deltaPhi, float deltaTheta, float radiusFactor){
+	Camera* camera = scene->getCamera();
+	Vec3* molPos = new Vec3(mol->getX(),mol->getY(),mol->getZ());
+	SphericalCoord* sphCoord = new SphericalCoord(camera->getPosition(),molPos);
+	float r = sphCoord->getR()*radiusFactor;
+	r = fmax(0.2,fmin(99.0,r));
+	sphCoord->setR(r);
+	float phi = sphCoord->getPhi() + deltaPhi;
+	float theta = sphCoord->getTheta() + deltaTheta;
+	phi = fmax(MINANG,fmin(MAXANG,phi));
+	phi = fmax( EPS, fmin( PI - EPS, phi ));
+	sphCoord->setPhi(phi);
+	sphCoord->setTheta(theta);
+	Vec3* newPos = sphCoord->getCartesian(molPos);
+	camera->getPosition()->setX(newPos->getX());
+	camera->getPosition()->setY(newPos->getY());
+	camera->getPosition()->setZ(newPos->getZ());
+	delete sphCoord;
+	delete molPos;
+	delete newPos;
+}
+
 bool handleEvents(){
 	SDL_Event event;
-	static float radius =12;
-	Camera* camera = scene->getCamera();
-	static GLfloat rot = camera->getRotation()->getY();
 	while( SDL_PollEvent( &event ) ){
 		switch(event.type){
 			case SDL_KEYDOWN:
-				rot -= 0.1;
-				camera->getPosition()->setX(mol->getX());
-	    		camera->getPosition()->setY(radius * (sin(rot))+ mol->getY());
-	    		camera->getPosition()->setZ(radius * (cos(rot))+ mol->getZ());
 				break;
 			case SDL_MOUSEMOTION:
 				if(event.motion.state & SDL_BUTTON(1)){
-					float deltaTheta = 2 * PI * event.motion.xrel / SCREEN_WIDTH;
-					float deltaPhi = 2 * PI * event.motion.yrel / SCREEN_HEIGHT;
-
-					Vec3* molPos = new Vec3(mol->getX(),0,mol->getZ());
-					Vec3* sub = Vec3::subVectors(camera->getPosition(),molPos);
-					float x2z2 = sqrt((sub->getX()*sub->getX())+(sub->getZ()*sub->getZ()));
-					float theta = atan2(sub->getX(),sub->getZ());
-					float phi = atan2(x2z2,sub->getY());
-
-					theta-=deltaTheta;
-					phi-=deltaPhi;
-
-					phi = fmax(MINANG,fmin(MAXANG,phi));
-
-					camera->getPosition()->setX(radius*sin(phi)*sin(theta)+molPos->getX());
-					camera->getPosition()->setY(radius * cos(phi)+molPos->getY());
-					camera->getPosition()->setZ(radius*sin(phi)*cos(theta)+molPos->getZ());
-					delete sub;
-					delete molPos;
+					float deltaTheta = -2 * PI * event.motion.xrel / SCREEN_WIDTH;
+					float deltaPhi = -2 * PI * event.motion.yrel / SCREEN_HEIGHT;
+					updateCamSphericalPosition(deltaPhi,deltaTheta,1.0);
 				}
+				break;
+			case SDL_MOUSEWHEEL:
+				float factor;
+				factor = event.wheel.y * 0.05;
+				updateCamSphericalPosition(0,0,1-factor);
 				break;
 			case SDL_QUIT:
 				return true;
@@ -160,10 +167,10 @@ void cleanUp(){
 
 int main(int argc, char** argv){
 	initializeContext();
-	int c;
-	//scanf("%d",&c);
+	/*int c;
+	scanf("%d",&c);*/
 	scene = new Scene();
-	mol = new Molecule("caffeine.pdb");
+	mol = new Molecule("dna.pdb");
 	mol->addToScene(scene);
 	Camera* camera = scene->getCamera();
 	camera->setTarget(new Vec3(mol->getX(),mol->getY(),mol->getZ()));
