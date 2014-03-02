@@ -18,6 +18,7 @@ OBJS = $(BUILDDIR)/Vec3.o \
        $(BUILDDIR)/PointLight.o \
        $(BUILDDIR)/PointMaterial.o \
        $(BUILDDIR)/AtomMaterialPool.o \
+       $(BUILDDIR)/SphericalCoord.o \
        $(BUILDDIR)/Atom.o \
        $(BUILDDIR)/Molecule.o \
        $(BUILDDIR)/main.o
@@ -78,6 +79,8 @@ Renderer.h : Scene.h Mesh.h
 Camera.h : Object3D.h
 
 Light.h : Color.h
+
+SphericalCoord.h : Vec3.h
 
 DirectionalLight.h : Light.h
 
