@@ -18,6 +18,7 @@ OBJS = $(BUILDDIR)/Vec3.o \
        $(BUILDDIR)/PointLight.o \
        $(BUILDDIR)/PointMaterial.o \
        $(BUILDDIR)/AtomMaterialPool.o \
+       $(BUILDDIR)/AtomRadiusTable.o \
        $(BUILDDIR)/SphericalCoord.o \
        $(BUILDDIR)/Atom.o \
        $(BUILDDIR)/Molecule.o \
