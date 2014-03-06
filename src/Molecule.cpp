@@ -1,5 +1,6 @@
 #include "Molecule.h"
 #include "AtomMaterialPool.h"
+#include "AtomRadiusTable.h"
 #include "object/Mesh.h"
 #include <fstream>
 #include <iostream>
@@ -43,8 +44,9 @@ void Molecule::readPDB(const char* filename){
 	if (pdbFile.is_open()){
 		this->numAtoms =0;
 		AtomMaterialPool* matPool = AtomMaterialPool::getInstance();
+		AtomRadiusTable* radiusTable = AtomRadiusTable::getInstance();
 		Geometry* atomGeometry = new Geometry();
-	    atomGeometry->loadDataFromFile("highres-icosphere.mesh");
+	    atomGeometry->loadDataFromFile("icosphere.mesh");
 	    while (!pdbFile.eof()){
 	      pdbFile.getline(line,81);
 	      if(strlen(line) == 80){
@@ -59,9 +61,10 @@ void Molecule::readPDB(const char* filename){
 	      		atomMesh->getPosition()->setX(atof(x));
 	      		atomMesh->getPosition()->setY(atof(y));
 	      		atomMesh->getPosition()->setZ(atof(z));
-	      		atomMesh->getScale()->setX(0.5);
-	      		atomMesh->getScale()->setY(0.5);
-	      		atomMesh->getScale()->setZ(0.5);
+	      		float radius = radiusTable->getRadius(element);
+	      		atomMesh->getScale()->setX(radius);
+	      		atomMesh->getScale()->setY(radius);
+	      		atomMesh->getScale()->setZ(radius);
 	      		delete y;
 	      		delete x;
 	      		delete z;
