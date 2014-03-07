@@ -55,22 +55,28 @@ void Molecule::readPDB(const char* filename){
 	      		char* element = isspace(line[12]) || isdigit(line[12])? substr(line,13,1): substr(line,12,2);
 	      		Material* atomMaterial = matPool->getAtomMaterial(element);
 	      		Mesh* atomMesh = new Mesh(atomGeometry,atomMaterial);
+	      		Mesh* spacefillMesh = new Mesh(atomGeometry,atomMaterial);
 	      		char* x = substr(line,30,8);
 	      		char* y = substr(line,38,8);
 	      		char* z = substr(line,46,8);
 	      		atomMesh->getPosition()->setX(atof(x));
 	      		atomMesh->getPosition()->setY(atof(y));
 	      		atomMesh->getPosition()->setZ(atof(z));
+	      		spacefillMesh->getPosition()->setX(atof(x));
+	      		spacefillMesh->getPosition()->setY(atof(y));
+	      		spacefillMesh->getPosition()->setZ(atof(z));
 	      		float radius = radiusTable->getRadius(element);
-	      		atomMesh->getScale()->setX(radius);
-	      		atomMesh->getScale()->setY(radius);
-	      		atomMesh->getScale()->setZ(radius);
+	      		spacefillMesh->getScale()->setX(radius);
+	      		spacefillMesh->getScale()->setY(radius);
+	      		spacefillMesh->getScale()->setZ(radius);
 	      		delete y;
 	      		delete x;
 	      		delete z;
 	      		Atom* atom = new Atom(element,atomMesh);
+	      		Atom* spacefillAtom = new Atom(element,spacefillMesh);
 	      		delete element;
 	      		this->atoms.push_back(atom);
+	      		this->spacefill.push_back(spacefillAtom);
 	      		this->x += atom->getMesh()->getPosition()->getX();
 	      		this->y += atom->getMesh()->getPosition()->getY();
 	      		this->z += atom->getMesh()->getPosition()->getZ();
@@ -155,6 +161,10 @@ void Molecule::calculateConnections(int num){
 
 vector<Atom*> Molecule::getAtoms(){
 	return this->atoms;
+}
+
+vector<Atom*> Molecule::getSpacefill(){
+	return this->spacefill;
 }
 
 vector<Mesh*> Molecule::getBonds(){

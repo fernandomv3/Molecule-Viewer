@@ -8,6 +8,7 @@ using namespace std;
 class Molecule{
 private:
 	vector<Atom*> atoms;
+	vector<Atom*> spacefill;
 	vector<Mesh*> bonds;
 	bool ** connections;
 	char* substr(const char* source, int i, int n);
@@ -20,6 +21,7 @@ public:
 	~Molecule();
 	void readPDB(const char* filename);
 	vector<Atom*> getAtoms();
+	vector<Atom*> getSpacefill();
 	vector<Mesh*> getBonds();
 	Mesh* createBond(Atom* a1, Atom* a2);
 	static Vec3* getBondPos(Vec3* atomPos1, Vec3* atomPos2);
