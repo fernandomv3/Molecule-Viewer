@@ -46,7 +46,7 @@ void Molecule::readPDB(const char* filename){
 		AtomMaterialPool* matPool = AtomMaterialPool::getInstance();
 		AtomRadiusTable* radiusTable = AtomRadiusTable::getInstance();
 		Geometry* atomGeometry = new Geometry();
-	    atomGeometry->loadDataFromFile("icosphere.mesh");
+	    atomGeometry->loadDataFromFile("highres-icosphere.mesh");
 	    while (!pdbFile.eof()){
 	      pdbFile.getline(line,81);
 	      if(strlen(line) == 80){
@@ -66,9 +66,13 @@ void Molecule::readPDB(const char* filename){
 	      		spacefillMesh->getPosition()->setY(atof(y));
 	      		spacefillMesh->getPosition()->setZ(atof(z));
 	      		float radius = radiusTable->getRadius(element);
+	      		atomMesh->getScale()->setX(0.5);
+	      		atomMesh->getScale()->setY(0.5);
+	      		atomMesh->getScale()->setZ(0.5);
 	      		spacefillMesh->getScale()->setX(radius);
 	      		spacefillMesh->getScale()->setY(radius);
 	      		spacefillMesh->getScale()->setZ(radius);
+	      		
 	      		delete y;
 	      		delete x;
 	      		delete z;
@@ -198,6 +202,9 @@ void Molecule::addToScene(Scene* scene){
 	for (int i=0; i < numBonds;i++){
 		scene->addObject((Object3D*)(this->bonds[i]));
 	}
+	/*for (int i =0; i < this->numAtoms;i++){
+		scene->addObject((Object3D*)(this->spacefill[i]->getMesh()));
+	}*/
 }
 
 float Molecule::getX(){
