@@ -2,6 +2,7 @@
 #include <cstdlib>
 
 Object3D::Object3D(){
+	this->visible = true;
 	this->position = new Vec3(0,0,0);
 	this->rotation = new Euler(0,0,0,"XYZ");
 	this->quaternion = new Quaternion(0,0,0,1);
@@ -106,6 +107,13 @@ void Object3D::updateModelMatrix(){
 	delete translation;
 }
 
+bool Object3D::getVisible(){
+	return this->visible;
+}
+
+void Object3D::setVisible(bool visible){
+	this->visible = visible;
+}
 
 
 

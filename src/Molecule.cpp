@@ -55,22 +55,32 @@ void Molecule::readPDB(const char* filename){
 	      		char* element = isspace(line[12]) || isdigit(line[12])? substr(line,13,1): substr(line,12,2);
 	      		Material* atomMaterial = matPool->getAtomMaterial(element);
 	      		Mesh* atomMesh = new Mesh(atomGeometry,atomMaterial);
+	      		Mesh* spacefillMesh = new Mesh(atomGeometry,atomMaterial);
 	      		char* x = substr(line,30,8);
 	      		char* y = substr(line,38,8);
 	      		char* z = substr(line,46,8);
 	      		atomMesh->getPosition()->setX(atof(x));
 	      		atomMesh->getPosition()->setY(atof(y));
 	      		atomMesh->getPosition()->setZ(atof(z));
+	      		spacefillMesh->getPosition()->setX(atof(x));
+	      		spacefillMesh->getPosition()->setY(atof(y));
+	      		spacefillMesh->getPosition()->setZ(atof(z));
 	      		float radius = radiusTable->getRadius(element);
-	      		atomMesh->getScale()->setX(radius);
-	      		atomMesh->getScale()->setY(radius);
-	      		atomMesh->getScale()->setZ(radius);
+	      		atomMesh->getScale()->setX(0.5);
+	      		atomMesh->getScale()->setY(0.5);
+	      		atomMesh->getScale()->setZ(0.5);
+	      		spacefillMesh->getScale()->setX(radius);
+	      		spacefillMesh->getScale()->setY(radius);
+	      		spacefillMesh->getScale()->setZ(radius);
+	      		
 	      		delete y;
 	      		delete x;
 	      		delete z;
 	      		Atom* atom = new Atom(element,atomMesh);
+	      		Atom* spacefillAtom = new Atom(element,spacefillMesh);
 	      		delete element;
 	      		this->atoms.push_back(atom);
+	      		this->spacefill.push_back(spacefillAtom);
 	      		this->x += atom->getMesh()->getPosition()->getX();
 	      		this->y += atom->getMesh()->getPosition()->getY();
 	      		this->z += atom->getMesh()->getPosition()->getZ();
@@ -157,6 +167,10 @@ vector<Atom*> Molecule::getAtoms(){
 	return this->atoms;
 }
 
+vector<Atom*> Molecule::getSpacefill(){
+	return this->spacefill;
+}
+
 vector<Mesh*> Molecule::getBonds(){
 	return this->bonds;
 }
@@ -188,6 +202,9 @@ void Molecule::addToScene(Scene* scene){
 	for (int i=0; i < numBonds;i++){
 		scene->addObject((Object3D*)(this->bonds[i]));
 	}
+	for (int i =0; i < this->numAtoms;i++){
+		scene->addObject((Object3D*)(this->spacefill[i]->getMesh()));
+	}
 }
 
 float Molecule::getX(){
@@ -200,5 +217,11 @@ float Molecule::getY(){
 
 float Molecule::getZ(){
 	return this->z;
+}
+
+void Molecule::toggleSpaceFill(){
+	for(int i=0; i< this->numAtoms;i++){
+		this->spacefill[i]->getMesh()->setVisible(!this->spacefill[i]->getMesh()->getVisible());
+	}
 }
 
