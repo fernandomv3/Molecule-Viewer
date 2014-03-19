@@ -46,7 +46,7 @@ void Molecule::readPDB(const char* filename){
 		AtomMaterialPool* matPool = AtomMaterialPool::getInstance();
 		AtomRadiusTable* radiusTable = AtomRadiusTable::getInstance();
 		Geometry* atomGeometry = new Geometry();
-	    atomGeometry->loadDataFromFile("icosphere.mesh");
+	    atomGeometry->loadDataFromFile("highres-icosphere.mesh");
 	    while (!pdbFile.eof()){
 	      pdbFile.getline(line,81);
 	      if(strlen(line) == 80){
