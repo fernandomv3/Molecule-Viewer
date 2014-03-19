@@ -118,6 +118,11 @@ bool handleEvents(){
 	while( SDL_PollEvent( &event ) ){
 		switch(event.type){
 			case SDL_KEYDOWN:
+				switch(event.key.keysym.sym){
+					case SDLK_SPACE:
+						mol->toggleSpaceFill();
+					break;
+				}
 				break;
 			case SDL_MOUSEMOTION:
 				if(event.motion.state & SDL_BUTTON(1)){

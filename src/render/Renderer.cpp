@@ -223,6 +223,7 @@ void Renderer::render(Scene * scene){
 
 	for(;it != end;it++){
 		Mesh* mesh= (Mesh*)(*it);
+		if(!mesh->getVisible()) continue;
 		if(mesh->getGeometry()->getVertexBuffer() == 0 && mesh->getGeometry()->getVertices() != NULL){
 			GLuint buf = this->makeBuffer(GL_ARRAY_BUFFER,
 							mesh->getGeometry()->getVertices(),

@@ -30,12 +30,12 @@ BUILDDIR = build
 BINDIR = bin
 CC = g++
 DEBUG = -g -Wall
-IFLAGS = -I $(INCDIR) -I /usr/local/include
+IFLAGS = -I $(INCDIR) -I /usr/local/include -I /usr/include
 SDLFLAGS = -L/usr/local/lib -lSDL2
 CFLAGS = -c $(DEBUG) $(IFLAGS)
-GLEWFLAGS = -lGLEW
+GLEWFLAGS = -L/usr/lib -lGLEW 
 OPENGLFLAGS = -framework OpenGL 
-LFLAGS = $(DEBUG) $(SDLFLAGS) $(OPENGLFLAGS) $(GLEWFLAGS)
+LFLAGS = $(DEBUG) $(GLEWFLAGS) $(SDLFLAGS) $(OPENGLFLAGS) 
 
 vpath %.cpp $(SRCDIR)
 vpath %.cpp $(SRCDIR)/material

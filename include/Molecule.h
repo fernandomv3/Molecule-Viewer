@@ -33,6 +33,7 @@ public:
 	float getX();
 	float getY();
 	float getZ();
+	void toggleSpaceFill();
 };
 
 #endif

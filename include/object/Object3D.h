@@ -13,6 +13,7 @@ private:
 	Quaternion* quaternion;
 	Vec3* scale;
 	Mat4 * modelMatrix;
+	bool visible;
 public:
 	Object3D();
 	virtual ~Object3D();
@@ -26,6 +27,8 @@ public:
 	void updateModelMatrix();
 	void setQuaternion(Quaternion* quaternion);
 	Quaternion* getQuaternion();
+	bool getVisible();
+	void setVisible(bool visible);
 };
 
 #endif

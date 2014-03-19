@@ -202,9 +202,9 @@ void Molecule::addToScene(Scene* scene){
 	for (int i=0; i < numBonds;i++){
 		scene->addObject((Object3D*)(this->bonds[i]));
 	}
-	/*for (int i =0; i < this->numAtoms;i++){
+	for (int i =0; i < this->numAtoms;i++){
 		scene->addObject((Object3D*)(this->spacefill[i]->getMesh()));
-	}*/
+	}
 }
 
 float Molecule::getX(){
@@ -217,5 +217,11 @@ float Molecule::getY(){
 
 float Molecule::getZ(){
 	return this->z;
+}
+
+void Molecule::toggleSpaceFill(){
+	for(int i=0; i< this->numAtoms;i++){
+		this->spacefill[i]->getMesh()->setVisible(!this->spacefill[i]->getMesh()->getVisible());
+	}
 }
 
