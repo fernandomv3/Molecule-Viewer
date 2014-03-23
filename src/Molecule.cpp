@@ -53,22 +53,33 @@ void Molecule::readPDB(const char* filename){
 	      	char* recordName = substr(line,0,6);
 	      	if(!strcmp(recordName,"ATOM  ") || !strcmp(recordName,"HETATM")){
 	      		char* element = isspace(line[12]) || isdigit(line[12])? substr(line,13,1): substr(line,12,2);
+	      		//create material for both representations
 	      		Material* atomMaterial = matPool->getAtomMaterial(element);
+	      		//create mesh for ball & stick
 	      		Mesh* atomMesh = new Mesh(atomGeometry,atomMaterial);
+	      		//create mesh for spacefill
 	      		Mesh* spacefillMesh = new Mesh(atomGeometry,atomMaterial);
+	      		//spacefill is initially invisible
+	      		spacefillMesh->setVisible(false);
+	      		//get 3D position
 	      		char* x = substr(line,30,8);
 	      		char* y = substr(line,38,8);
 	      		char* z = substr(line,46,8);
+	      		//set position for ball & stick
 	      		atomMesh->getPosition()->setX(atof(x));
 	      		atomMesh->getPosition()->setY(atof(y));
 	      		atomMesh->getPosition()->setZ(atof(z));
+	      		//set position for spacefill
 	      		spacefillMesh->getPosition()->setX(atof(x));
 	      		spacefillMesh->getPosition()->setY(atof(y));
 	      		spacefillMesh->getPosition()->setZ(atof(z));
+	      		//retrieve spacefill radius
 	      		float radius = radiusTable->getRadius(element);
+	      		//ball & stick has constant size 0.5A
 	      		atomMesh->getScale()->setX(0.5);
 	      		atomMesh->getScale()->setY(0.5);
 	      		atomMesh->getScale()->setZ(0.5);
+	      		//set spacefill radius
 	      		spacefillMesh->getScale()->setX(radius);
 	      		spacefillMesh->getScale()->setY(radius);
 	      		spacefillMesh->getScale()->setZ(radius);
@@ -76,11 +87,14 @@ void Molecule::readPDB(const char* filename){
 	      		delete y;
 	      		delete x;
 	      		delete z;
+	      		// create both atom objects
 	      		Atom* atom = new Atom(element,atomMesh);
 	      		Atom* spacefillAtom = new Atom(element,spacefillMesh);
 	      		delete element;
+	      		//push atoms to lists
 	      		this->atoms.push_back(atom);
 	      		this->spacefill.push_back(spacefillAtom);
+	      		//calculate atom center
 	      		this->x += atom->getMesh()->getPosition()->getX();
 	      		this->y += atom->getMesh()->getPosition()->getY();
 	      		this->z += atom->getMesh()->getPosition()->getZ();
@@ -222,6 +236,11 @@ float Molecule::getZ(){
 void Molecule::toggleSpaceFill(){
 	for(int i=0; i< this->numAtoms;i++){
 		this->spacefill[i]->getMesh()->setVisible(!this->spacefill[i]->getMesh()->getVisible());
+		this->atoms[i]->getMesh()->setVisible(!this->atoms[i]->getMesh()->getVisible());
+	}
+	int numBonds = this->bonds.size();
+	for(int i=0; i<numBonds; i++){
+		this->bonds[i]->setVisible(!this->bonds[i]->getVisible());
 	}
 }
 
