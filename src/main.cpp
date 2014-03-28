@@ -14,7 +14,6 @@
 #include "scene/Scene.h"
 #include "render/Renderer.h"
 #include "material/PhongMaterial.h"
-#include "Molecule.h"
 #include "math/SphericalCoord.h"
 
 #define PI 3.1415927
@@ -24,7 +23,7 @@
 
 Renderer* renderer;
 Scene* scene;
-Molecule* mol;
+Mesh* robot;
 
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
@@ -93,8 +92,8 @@ void initializeContext(){
 //move this function as a method of Object3D
 void updateCamSphericalPosition(float deltaPhi, float deltaTheta, float radiusFactor){
 	Camera* camera = scene->getCamera();
-	Vec3* molPos = new Vec3(mol->getX(),mol->getY(),mol->getZ());
-	SphericalCoord* sphCoord = new SphericalCoord(camera->getPosition(),molPos);
+	Vec3* robotPos = new Vec3(robot->getPosition()->getX(),robot->getPosition()->getY(),robot->getPosition()->getZ());
+	SphericalCoord* sphCoord = new SphericalCoord(camera->getPosition(),robotPos);
 	float r = sphCoord->getR()*radiusFactor;
 	r = fmax(0.2,fmin(99.0,r));
 	sphCoord->setR(r);
@@ -104,12 +103,12 @@ void updateCamSphericalPosition(float deltaPhi, float deltaTheta, float radiusFa
 	phi = fmax( EPS, fmin( PI - EPS, phi ));
 	sphCoord->setPhi(phi);
 	sphCoord->setTheta(theta);
-	Vec3* newPos = sphCoord->getCartesian(molPos);
+	Vec3* newPos = sphCoord->getCartesian(robotPos);
 	camera->getPosition()->setX(newPos->getX());
 	camera->getPosition()->setY(newPos->getY());
 	camera->getPosition()->setZ(newPos->getZ());
 	delete sphCoord;
-	delete molPos;
+	delete robotPos;
 	delete newPos;
 }
 
@@ -120,7 +119,7 @@ bool handleEvents(){
 			case SDL_KEYDOWN:
 				switch(event.key.keysym.sym){
 					case SDLK_SPACE:
-						mol->toggleSpaceFill();
+						//mol->toggleSpaceFill();
 					break;
 				}
 				break;
@@ -175,14 +174,20 @@ int main(int argc, char** argv){
 	/*int c;
 	scanf("%d",&c);*/
 	scene = new Scene();
-	mol = new Molecule("dna.pdb");
-	mol->addToScene(scene);
+	Geometry* robotGeom = new Geometry();
+	robotGeom->loadDataFromFile("robot.mesh");
+	Material* robotMaterial = new PhongMaterial();
+	robot = new Mesh(robotGeom,robotMaterial);
+	robot->getRotation()->setX(-90);
+	//robot->getMaterial()->getDiffuseColor()->setRGB(0.2,0.2,0.2);
+	scene->addObject((Object3D*)robot);
 	Camera* camera = scene->getCamera();
-	camera->setTarget(new Vec3(mol->getX(),mol->getY(),mol->getZ()));
+	camera->setTarget(new Vec3(robot->getPosition()->getX(),robot->getPosition()->getY(),robot->getPosition()->getZ()));
 	DirectionalLight* light1 = new DirectionalLight();
 	light1->getPosition()->setX(2.0);
 	light1->getPosition()->setY(4.0);
 	light1->getPosition()->setZ(5.0);
+	light1->getColor()->setRGB(0.1,0.1,0.1);
 	scene->addDirectionalLight(light1);
 
 	renderer = new Renderer();
