@@ -180,7 +180,7 @@ int main(int argc, char** argv){
 	robotMaterial->setShininess(100);
 	robot = new Mesh(robotGeom,robotMaterial);
 	robot->getRotation()->setX(-90);
-	//robot->getMaterial()->getDiffuseColor()->setRGB(0.2,0.2,0.2);
+	robot->getMaterial()->getDiffuseColor()->setRGB(1,1,1);
 	scene->addObject((Object3D*)robot);
 	Camera* camera = scene->getCamera();
 	camera->setTarget(new Vec3(robot->getPosition()->getX(),robot->getPosition()->getY(),robot->getPosition()->getZ()));
@@ -188,7 +188,7 @@ int main(int argc, char** argv){
 	light1->getPosition()->setX(2.0);
 	light1->getPosition()->setY(4.0);
 	light1->getPosition()->setZ(5.0);
-	light1->getColor()->setRGB(0.1,0.1,0.1);
+	light1->getColor()->setRGB(0.3,0.3,0.3);
 	scene->addDirectionalLight(light1);
 
 	renderer = new Renderer();

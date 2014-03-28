@@ -86,6 +86,9 @@ PhongMaterial::PhongMaterial():Material(){
 			blinnPhongTerm = pow(blinnPhongTerm, shininess);\n\
 			return blinnPhongTerm;\n\
     	}\n\
+    	float warp (float value, float factor){\n\
+    		return (value + factor ) / (1+ clamp(factor,0,1));\n\
+    	}\n\
     	\n\
     	void main(){\n\
     		vec4 viewDirection = normalize(-worldSpacePosition);\n\
@@ -96,7 +99,7 @@ PhongMaterial::PhongMaterial():Material(){
 				float cosAngIncidence;\n\
 				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,normal,viewDirection,objectMaterial.shininess,cosAngIncidence);\n\
 				\n\
-            	outputColor = outputColor + (dirLights[i].color * objectMaterial.diffuseColor * cosAngIncidence);\n\
+            	outputColor = outputColor + (dirLights[i].color * objectMaterial.diffuseColor * warp(cosAngIncidence,1));\n\
             	outputColor = outputColor + (objectMaterial.specularColor * blinnPhongTerm);\n\
 			}\n\
 			for(int i=0; i< numPointLights ;i++){\n\
@@ -107,7 +110,7 @@ PhongMaterial::PhongMaterial():Material(){
 				float cosAngIncidence;\n\
 				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,normal,viewDirection,objectMaterial.shininess,cosAngIncidence);\n\
 				\n\
-            	outputColor = outputColor + (attenLightIntensity * objectMaterial.diffuseColor * cosAngIncidence);\n\
+            	outputColor = outputColor + (attenLightIntensity * objectMaterial.diffuseColor * warp(cosAngIncidence,1));\n\
             	outputColor = outputColor + (objectMaterial.specularColor * attenLightIntensity * blinnPhongTerm);\n\
 			}\n\
             outputColor = outputColor + (objectMaterial.diffuseColor * ambientLight);\n\
