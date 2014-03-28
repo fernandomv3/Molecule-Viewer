@@ -177,6 +177,7 @@ int main(int argc, char** argv){
 	Geometry* robotGeom = new Geometry();
 	robotGeom->loadDataFromFile("robot.mesh");
 	Material* robotMaterial = new PhongMaterial();
+	robotMaterial->setShininess(100);
 	robot = new Mesh(robotGeom,robotMaterial);
 	robot->getRotation()->setX(-90);
 	//robot->getMaterial()->getDiffuseColor()->setRGB(0.2,0.2,0.2);
