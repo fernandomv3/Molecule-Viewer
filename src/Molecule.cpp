@@ -2,6 +2,8 @@
 #include "AtomMaterialPool.h"
 #include "AtomRadiusTable.h"
 #include "object/Mesh.h"
+#include "material/PhongMaterial.h"
+#include "material/GouraudMaterial.h"
 #include <fstream>
 #include <iostream>
 #include <cstdlib>
@@ -159,7 +161,7 @@ void Molecule::calculateConnections(int num){
 	}
 	Geometry* geom = new Geometry();
 	geom->loadDataFromFile("cylinder.mesh");
-	PhongMaterial* mat = new PhongMaterial();
+	Material* mat = new PhongMaterial();
 	mat->getDiffuseColor()->setRGB(0.5,0.5,0.5);
 	mat->setShininess(1000); 
 

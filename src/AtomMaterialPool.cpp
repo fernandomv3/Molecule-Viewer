@@ -1,4 +1,6 @@
 #include "AtomMaterialPool.h"
+#include "material/PhongMaterial.h"
+#include "material/GouraudMaterial.h"
 #include <fstream>
 #include <cstdio>
 #include <iostream>
@@ -14,7 +16,7 @@ AtomMaterialPool::AtomMaterialPool(){
 		char hexColor[8];
 		while(!colorsFile.eof()){
 			colorsFile >> element >> hexColor;
-			PhongMaterial* mat= new PhongMaterial();
+			Material* mat= new PhongMaterial();
 			float color[3];
 			AtomMaterialPool::RGBfromHexString(color,hexColor);
 			mat->getDiffuseColor()->setRGB(color[0],color[1],color[2]);
@@ -42,5 +44,5 @@ void AtomMaterialPool::RGBfromHexString(float* result , const char* hexColor){
 
 Material* AtomMaterialPool::getAtomMaterial(char* element){
 	string str(element);
-	return (Material *)pool[str];
+	return pool[str];
 }
