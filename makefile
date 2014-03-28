@@ -4,6 +4,7 @@ OBJS = $(BUILDDIR)/Vec3.o \
        $(BUILDDIR)/GLProgram.o \
        $(BUILDDIR)/Material.o \
        $(BUILDDIR)/BasicMaterial.o \
+       $(BUILDDIR)/GouraudMaterial.o \
        $(BUILDDIR)/PhongMaterial.o \
        $(BUILDDIR)/Object3D.o \
        $(BUILDDIR)/Mesh.o \
@@ -66,6 +67,8 @@ Euler.h : Mat4.h
 Material.h : GLProgram.h Color.h
 
 BasicMaterial.h : Material.h
+
+GouraudMaterial.h : Material.h
 
 PhongMaterial.h : Material.h
 
