@@ -6,7 +6,7 @@ using namespace std;
 Scene::Scene(){
 	this->camera = new Camera();
 	Mat4* mat = this->camera->getProjectionMatrix(); 
-	this->camera->setProjectionMatrix(Mat4::perspectiveMatrix(30.0, 4.0/3.0, 0.1, 100.0));
+	this->camera->setProjectionMatrix(Mat4::perspectiveMatrix(30.0, 1280.0/720.0, 0.1, 100.0));
 	delete mat;
 	this->camera->getPosition()->setZ(12.0);
 	this->ambientLight = new Light();

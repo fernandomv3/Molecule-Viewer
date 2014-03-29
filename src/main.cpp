@@ -26,9 +26,11 @@
 Renderer* renderer;
 Scene* scene;
 Mesh* robot;
+PhongMaterial* phong;
+GouraudMaterial* gouraud;
 
-const int SCREEN_WIDTH = 800;
-const int SCREEN_HEIGHT = 600;
+const int SCREEN_WIDTH = 1280;
+const int SCREEN_HEIGHT = 720;
 
 SDL_Window* window = NULL;
 SDL_Surface* screenSurface;
@@ -121,7 +123,12 @@ bool handleEvents(){
 			case SDL_KEYDOWN:
 				switch(event.key.keysym.sym){
 					case SDLK_SPACE:
-						//mol->toggleSpaceFill();
+						if(robot->getMaterial() == gouraud){
+							robot->setMaterial(phong);
+						}
+						else{
+							robot->setMaterial(gouraud);
+						}
 					break;
 				}
 				break;
@@ -178,11 +185,14 @@ int main(int argc, char** argv){
 	scene = new Scene();
 	Geometry* robotGeom = new Geometry();
 	robotGeom->loadDataFromFile("robot.mesh");
-	Material* robotMaterial = new PhongMaterial();
-	robotMaterial->setShininess(100);
-	robot = new Mesh(robotGeom,robotMaterial);
-	robot->getRotation()->setX(-90);
-	robot->getMaterial()->getDiffuseColor()->setRGB(1,1,1);
+	phong = new PhongMaterial();
+	gouraud = new GouraudMaterial();
+	phong->setShininess(100);
+	gouraud->setShininess(100);
+	phong->getDiffuseColor()->setRGB(1,1,1);
+	gouraud->getDiffuseColor()->setRGB(1,1,1);
+	robot = new Mesh(robotGeom,phong);
+	robot->getRotation()->setX(-PI /2);
 	scene->addObject((Object3D*)robot);
 	Camera* camera = scene->getCamera();
 	camera->setTarget(new Vec3(robot->getPosition()->getX(),robot->getPosition()->getY(),robot->getPosition()->getZ()));
@@ -190,7 +200,7 @@ int main(int argc, char** argv){
 	light1->getPosition()->setX(2.0);
 	light1->getPosition()->setY(4.0);
 	light1->getPosition()->setZ(5.0);
-	light1->getColor()->setRGB(0.3,0.3,0.3);
+	light1->getColor()->setRGB(0.25,0.25,0.25);
 	scene->addDirectionalLight(light1);
 
 	renderer = new Renderer();
