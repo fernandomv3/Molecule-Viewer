@@ -6,34 +6,7 @@
 GouraudMaterial::GouraudMaterial():Material(){
 	this->vertexShaderSource= strdup(
 		"#version 410\n\
-		struct Material{\n\
-			vec4 diffuseColor;\n\
-			vec4 specularColor;\n\
-			float shininess;\n\
-		};\n\
-		in vec3 normal;\n\
-		in vec3 position;\n\
-		out Material objectMaterial;\n\
-		out vec4 vertexNormal;\n\
-		out vec4 worldSpacePosition;\n\
-		layout(std140) uniform globalMatrices{\n\
-			mat4 worldMatrix;\n\
-			mat4 projectionMatrix;\n\
-		};\n\
-		uniform mat4 modelMatrix;\n\
-		uniform Material material;\n\
-		void main(){\n\
-			vec4 pos = vec4(position,1.0);\n\
-			vec4 modelSpace = modelMatrix * pos;\n\
-			vec4 worldSpace = worldMatrix * modelSpace;\n\
-			gl_Position = projectionMatrix * worldSpace;\n\
-			objectMaterial = material;\n\
-			worldSpacePosition = worldSpace;\n\
-			vertexNormal = normalize(worldMatrix * modelMatrix * vec4(normal,0.0));\n\
-		}");
-    this->fragmentShaderSource=strdup(
-    	"#version 410\n\
-    	#define MAX_DIR_LIGHTS 10\n\
+		#define MAX_DIR_LIGHTS 10\n\
 		#define MAX_P_LIGHTS 10\n\
 		struct DirectionalLight{\n\
 			vec4 color;\n\
@@ -65,19 +38,27 @@ GouraudMaterial::GouraudMaterial():Material(){
 		layout(std140) uniform ambLight{\n\
 			vec4 ambientLight;\n\
 		};\n\
-		\n\
-    	in vec4 vertexNormal;\n\
-		in vec4 worldSpacePosition;\n\
-		in Material objectMaterial;\n\
-    	out vec4 outputColor;\n\
-    	vec4 attenuateLight(in vec4 color, in float attenuation, in vec4 vectorToLight){\n\
+		uniform mat4 modelMatrix;\n\
+		uniform Material material;\n\
+		in vec3 normal;\n\
+		in vec3 position;\n\
+		layout(std140) uniform globalMatrices{\n\
+			mat4 worldMatrix;\n\
+			mat4 projectionMatrix;\n\
+		};\n\
+		out vec4 color;\n\
+		vec4 attenuateLight(in vec4 color, in float attenuation, in vec4 vectorToLight){\n\
 			float distSqr = dot(vectorToLight,vectorToLight);\n\
 			vec4 attenLightIntensity = color * (1/(1.0 + attenuation * sqrt(distSqr)));\n\
 			return attenLightIntensity;\n\
     	}\n\
     	\n\
+    	float warp (float value, float factor){\n\
+    		return (value + factor ) / (1+ clamp(factor,0,1));\n\
+    	}\n\
     	float calculateBlinnPhongTerm(in vec4 direction,vec4 normal, in vec4 viewDirection, in float shininess, out float cosAngIncidence){\n\
     		cosAngIncidence = dot( normal , direction);\n\
+    		cosAngIncidence = warp(cosAngIncidence,1);\n\
             cosAngIncidence = clamp(cosAngIncidence, 0, 1);\n\
             vec4 halfAngle = normalize(direction + viewDirection);\n\
 			float blinnPhongTerm = dot(normal, halfAngle);\n\
@@ -87,31 +68,41 @@ GouraudMaterial::GouraudMaterial():Material(){
 			return blinnPhongTerm;\n\
     	}\n\
     	\n\
-    	void main(){\n\
-    		vec4 viewDirection = normalize(-worldSpacePosition);\n\
-			outputColor = vec4(0.0,0.0,0.0,1.0);\n\
+		void main(){\n\
+			vec4 pos = vec4(position,1.0);\n\
+			vec4 modelSpace = modelMatrix * pos;\n\
+			vec4 worldSpace = worldMatrix * modelSpace;\n\
+			gl_Position = projectionMatrix * worldSpace;\n\
+			vec4 viewDirection = normalize(-worldSpace);\n\
+			vec4 vertexNormal = normalize(worldMatrix * modelMatrix * vec4(normal,0.0));\n\
+			color = vec4(0.0,0.0,0.0,1.0);\n\
 			for(int i=0; i< numDirLights ;i++){\n\
 				vec4 normDirection = normalize(dirLights[i].vectorToLight);\n\
-				vec4 normal = normalize(vertexNormal);\n\
 				float cosAngIncidence;\n\
-				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,normal,viewDirection,objectMaterial.shininess,cosAngIncidence);\n\
+				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,vertexNormal,viewDirection,material.shininess,cosAngIncidence);\n\
 				\n\
-            	outputColor = outputColor + (dirLights[i].color * objectMaterial.diffuseColor * cosAngIncidence);\n\
-            	outputColor = outputColor + (objectMaterial.specularColor * blinnPhongTerm);\n\
+            	color = color + (dirLights[i].color * material.diffuseColor * cosAngIncidence);\n\
+            	color = color + (material.specularColor * blinnPhongTerm);\n\
 			}\n\
 			for(int i=0; i< numPointLights ;i++){\n\
-				vec4 difference = pLights[i].position - worldSpacePosition;\n\
+				vec4 difference = pLights[i].position - worldSpace;\n\
 				vec4 normDirection = normalize(difference);\n\
 				vec4 attenLightIntensity = attenuateLight(pLights[i].color,pLights[i].attenuation,difference);\n\
-				vec4 normal = normalize(vertexNormal);\n\
 				float cosAngIncidence;\n\
-				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,normal,viewDirection,objectMaterial.shininess,cosAngIncidence);\n\
+				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,vertexNormal,viewDirection,material.shininess,cosAngIncidence);\n\
 				\n\
-            	outputColor = outputColor + (attenLightIntensity * objectMaterial.diffuseColor * cosAngIncidence);\n\
-            	outputColor = outputColor + (objectMaterial.specularColor * attenLightIntensity * blinnPhongTerm);\n\
+            	color = color + (attenLightIntensity * material.diffuseColor * cosAngIncidence);\n\
+            	color = color + (material.specularColor * attenLightIntensity * blinnPhongTerm);\n\
 			}\n\
-            outputColor = outputColor + (objectMaterial.diffuseColor * ambientLight);\n\
-    	}");
+            color = color + (material.diffuseColor * ambientLight);\n\
+		}");
+    this->fragmentShaderSource=strdup(
+        "#version 410\n\
+        in vec4 color;\n\
+        out vec4 outputColor;\n\
+        void main(){\n\
+            outputColor = color;\n\
+        }");
 	this->program = new GLProgram();
 	GLuint vertexShader = this->program->compileShader(GL_VERTEX_SHADER,this->vertexShaderSource);
 	GLuint fragmentShader = this->program->compileShader(GL_FRAGMENT_SHADER,this->fragmentShaderSource);
