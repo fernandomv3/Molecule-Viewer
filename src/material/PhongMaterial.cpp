@@ -76,11 +76,7 @@ PhongMaterial::PhongMaterial():Material(){
 			return attenLightIntensity;\n\
     	}\n\
     	\n\
-<<<<<<< HEAD
-    	float warp (float value, float factor){\n\
-=======
     	float warp (in float value,in float factor){\n\
->>>>>>> testing
     		return (value + factor ) / (1+ clamp(factor,0,1));\n\
     	}\n\
     	float calculateBlinnPhongTerm(in vec4 direction,vec4 normal, in vec4 viewDirection, in float shininess, out float cosAngIncidence){\n\
