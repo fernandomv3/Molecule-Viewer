@@ -105,9 +105,8 @@ void Geometry::loadDataFromFile(const char* filename){//change to read without f
         this->numElements *=3;
 	this->elements = new GLushort[this->numElements];
 	unsigned short int normalIndex;
-	unsigned short int color;
 	for(int i=0; i< this->numElements ;i++){
-		fscanf(data,"%hu%hu%hu",&(this->elements[i]),&normalIndex,&color);
+		fscanf(data,"%hu%hu",&(this->elements[i]),&normalIndex);
 		exchangeNormalPosition(orderedNormals,this->normals,this->elements[i],normalIndex);
 	}
 	memcpy(this->normals,orderedNormals,sizeof(GLfloat)*this->numNormals);
