@@ -2,7 +2,7 @@
 #define BASICMATERIAL_H
 #include "material/Material.h"
 	
-class BasicMaterial:Material{
+class BasicMaterial:public Material{
 public:
 	BasicMaterial();
 };

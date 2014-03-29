@@ -15,6 +15,7 @@
 #include "render/Renderer.h"
 #include "material/PhongMaterial.h"
 #include "material/GouraudMaterial.h"
+#include "material/BasicMaterial.h"
 #include "math/SphericalCoord.h"
 
 #define PI 3.1415927

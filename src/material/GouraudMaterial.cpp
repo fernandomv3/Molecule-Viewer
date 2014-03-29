@@ -53,8 +53,12 @@ GouraudMaterial::GouraudMaterial():Material(){
 			return attenLightIntensity;\n\
     	}\n\
     	\n\
+    	float warp (float value, float factor){\n\
+    		return (value + factor ) / (1+ clamp(factor,0,1));\n\
+    	}\n\
     	float calculateBlinnPhongTerm(in vec4 direction,vec4 normal, in vec4 viewDirection, in float shininess, out float cosAngIncidence){\n\
     		cosAngIncidence = dot( normal , direction);\n\
+    		cosAngIncidence = warp(cosAngIncidence,1);\n\
             cosAngIncidence = clamp(cosAngIncidence, 0, 1);\n\
             vec4 halfAngle = normalize(direction + viewDirection);\n\
 			float blinnPhongTerm = dot(normal, halfAngle);\n\
@@ -63,17 +67,19 @@ GouraudMaterial::GouraudMaterial():Material(){
 			blinnPhongTerm = pow(blinnPhongTerm, shininess);\n\
 			return blinnPhongTerm;\n\
     	}\n\
+    	\n\
 		void main(){\n\
 			vec4 pos = vec4(position,1.0);\n\
 			vec4 modelSpace = modelMatrix * pos;\n\
 			vec4 worldSpace = worldMatrix * modelSpace;\n\
 			gl_Position = projectionMatrix * worldSpace;\n\
 			vec4 viewDirection = normalize(-worldSpace);\n\
+			vec4 vertexNormal = normalize(worldMatrix * modelMatrix * vec4(normal,0.0));\n\
 			color = vec4(0.0,0.0,0.0,1.0);\n\
 			for(int i=0; i< numDirLights ;i++){\n\
 				vec4 normDirection = normalize(dirLights[i].vectorToLight);\n\
 				float cosAngIncidence;\n\
-				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,vec4(normal,0.0),viewDirection,material.shininess,cosAngIncidence);\n\
+				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,vertexNormal,viewDirection,material.shininess,cosAngIncidence);\n\
 				\n\
             	color = color + (dirLights[i].color * material.diffuseColor * cosAngIncidence);\n\
             	color = color + (material.specularColor * blinnPhongTerm);\n\
@@ -83,7 +89,7 @@ GouraudMaterial::GouraudMaterial():Material(){
 				vec4 normDirection = normalize(difference);\n\
 				vec4 attenLightIntensity = attenuateLight(pLights[i].color,pLights[i].attenuation,difference);\n\
 				float cosAngIncidence;\n\
-				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,vec4(normal,0.0),viewDirection,material.shininess,cosAngIncidence);\n\
+				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,vertexNormal,viewDirection,material.shininess,cosAngIncidence);\n\
 				\n\
             	color = color + (attenLightIntensity * material.diffuseColor * cosAngIncidence);\n\
             	color = color + (material.specularColor * attenLightIntensity * blinnPhongTerm);\n\

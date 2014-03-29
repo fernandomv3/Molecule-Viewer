@@ -76,8 +76,12 @@ PhongMaterial::PhongMaterial():Material(){
 			return attenLightIntensity;\n\
     	}\n\
     	\n\
+    	float warp (float value, float factor){\n\
+    		return (value + factor ) / (1+ clamp(factor,0,1));\n\
+    	}\n\
     	float calculateBlinnPhongTerm(in vec4 direction,vec4 normal, in vec4 viewDirection, in float shininess, out float cosAngIncidence){\n\
     		cosAngIncidence = dot( normal , direction);\n\
+    		cosAngIncidence = warp(cosAngIncidence,1);\n\
             cosAngIncidence = clamp(cosAngIncidence, 0, 1);\n\
             vec4 halfAngle = normalize(direction + viewDirection);\n\
 			float blinnPhongTerm = dot(normal, halfAngle);\n\
@@ -85,9 +89,6 @@ PhongMaterial::PhongMaterial():Material(){
 			blinnPhongTerm = cosAngIncidence != 0.0 ? blinnPhongTerm : 0.0;\n\
 			blinnPhongTerm = pow(blinnPhongTerm, shininess);\n\
 			return blinnPhongTerm;\n\
-    	}\n\
-    	float warp (float value, float factor){\n\
-    		return (value + factor ) / (1+ clamp(factor,0,1));\n\
     	}\n\
     	\n\
     	void main(){\n\
@@ -99,7 +100,7 @@ PhongMaterial::PhongMaterial():Material(){
 				float cosAngIncidence;\n\
 				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,normal,viewDirection,objectMaterial.shininess,cosAngIncidence);\n\
 				\n\
-            	outputColor = outputColor + (dirLights[i].color * objectMaterial.diffuseColor * warp(cosAngIncidence,1));\n\
+            	outputColor = outputColor + (dirLights[i].color * objectMaterial.diffuseColor * cosAngIncidence);\n\
             	outputColor = outputColor + (objectMaterial.specularColor * blinnPhongTerm);\n\
 			}\n\
 			for(int i=0; i< numPointLights ;i++){\n\
@@ -110,7 +111,7 @@ PhongMaterial::PhongMaterial():Material(){
 				float cosAngIncidence;\n\
 				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,normal,viewDirection,objectMaterial.shininess,cosAngIncidence);\n\
 				\n\
-            	outputColor = outputColor + (attenLightIntensity * objectMaterial.diffuseColor * warp(cosAngIncidence,1));\n\
+            	outputColor = outputColor + (attenLightIntensity * objectMaterial.diffuseColor * cosAngIncidence);\n\
             	outputColor = outputColor + (objectMaterial.specularColor * attenLightIntensity * blinnPhongTerm);\n\
 			}\n\
             outputColor = outputColor + (objectMaterial.diffuseColor * ambientLight);\n\
