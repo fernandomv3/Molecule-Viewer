@@ -10,7 +10,7 @@ Scene::Scene(){
 	delete mat;
 	this->camera->getPosition()->setZ(12.0);
 	this->ambientLight = new Light();
-	this->ambientLight->getColor()->setRGB(0.25,0.25,0.25);
+	this->ambientLight->getColor()->setRGB(0.1,0.1,0.1);
 	this->directionalLightsUBO = 0;
 	this->pointLightsUBO=0;
 	this->ambientLightUBO = 0;

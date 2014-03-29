@@ -1,9 +1,9 @@
-#include "material/PhongMaterial.h"
+#include "material/CelMaterial.h"
 #include <string.h>
 #include <cassert>
 #include <stdio.h>
 
-PhongMaterial::PhongMaterial():Material(){
+CelMaterial::CelMaterial():Material(){
 	this->vertexShaderSource= strdup(
 		"#version 410\n\
 		struct Material{\n\
@@ -79,9 +79,17 @@ PhongMaterial::PhongMaterial():Material(){
     	float warp (in float value,in float factor){\n\
     		return (value + factor ) / (1+ clamp(factor,0,1));\n\
     	}\n\
+    	float celShade (in float value, in float threshold,in float min, in float max){\n\
+    		if(value < threshold){\n\
+    			return min;\n\
+    		}\n\
+    		else{\n\
+    			return max;\n\
+    		}\n\
+    	}\n\
     	float calculateBlinnPhongTerm(in vec4 direction,vec4 normal, in vec4 viewDirection, in float shininess, out float cosAngIncidence){\n\
     		cosAngIncidence = dot( normal , direction);\n\
-    		cosAngIncidence = warp(cosAngIncidence,1);\n\
+    		cosAngIncidence = celShade(cosAngIncidence,0.3,0.5,0.9);\n\
             cosAngIncidence = clamp(cosAngIncidence, 0, 1);\n\
             vec4 halfAngle = normalize(direction + viewDirection);\n\
 			float blinnPhongTerm = dot(normal, halfAngle);\n\
