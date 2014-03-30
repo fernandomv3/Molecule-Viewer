@@ -28,6 +28,7 @@ Scene* scene;
 Mesh* robot;
 PhongMaterial* phong;
 GouraudMaterial* gouraud;
+DirectionalLight* light1;
 
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
@@ -93,6 +94,25 @@ void initializeContext(){
 	}
 }
 
+void updateLightSphericalPosition(float deltaPhi, float deltaTheta){
+	Vec3* robotPos = new Vec3(robot->getPosition()->getX(),robot->getPosition()->getY(),robot->getPosition()->getZ());
+	SphericalCoord* sphCoord = new SphericalCoord(light1->getPosition(),robotPos);
+	sphCoord->setR(10);
+	float phi = sphCoord->getPhi() + deltaPhi;
+	float theta = sphCoord->getTheta() + deltaTheta;
+	phi = fmax(MINANG,fmin(MAXANG,phi));
+	phi = fmax( EPS, fmin( PI - EPS, phi ));
+	sphCoord->setPhi(phi);
+	sphCoord->setTheta(theta);
+	Vec3* newPos = sphCoord->getCartesian(robotPos);
+	light1->getPosition()->setX(newPos->getX());
+	light1->getPosition()->setY(newPos->getY());
+	light1->getPosition()->setZ(newPos->getZ());
+	delete sphCoord;
+	delete robotPos;
+	delete newPos;
+}
+
 //move this function as a method of Object3D
 void updateCamSphericalPosition(float deltaPhi, float deltaTheta, float radiusFactor){
 	Camera* camera = scene->getCamera();
@@ -130,6 +150,18 @@ bool handleEvents(){
 							robot->setMaterial(gouraud);
 						}
 					break;
+					case SDLK_w:
+						updateLightSphericalPosition(-0.2,0);
+						break;
+					case SDLK_s:
+						updateLightSphericalPosition(0.2,0);
+						break;
+					case SDLK_a:
+						updateLightSphericalPosition(0,-0.2);
+						break;
+					case SDLK_d:
+						updateLightSphericalPosition(0,0.2);
+						break;
 				}
 				break;
 			case SDL_MOUSEMOTION:
@@ -189,18 +221,18 @@ int main(int argc, char** argv){
 	gouraud = new GouraudMaterial();
 	phong->setShininess(100);
 	gouraud->setShininess(100);
-	phong->getDiffuseColor()->setRGB(1,1,1);
-	gouraud->getDiffuseColor()->setRGB(1,1,1);
+	phong->getDiffuseColor()->setRGB(0.5,0.5,0.55);
+	gouraud->getDiffuseColor()->setRGB(0.5,0.5,0.55);
 	robot = new Mesh(robotGeom,phong);
 	robot->getRotation()->setX(-PI /2);
 	scene->addObject((Object3D*)robot);
 	Camera* camera = scene->getCamera();
 	camera->setTarget(new Vec3(robot->getPosition()->getX(),robot->getPosition()->getY(),robot->getPosition()->getZ()));
-	DirectionalLight* light1 = new DirectionalLight();
+	light1 = new DirectionalLight();
 	light1->getPosition()->setX(2.0);
 	light1->getPosition()->setY(4.0);
 	light1->getPosition()->setZ(5.0);
-	light1->getColor()->setRGB(0.25,0.25,0.25);
+	light1->getColor()->setRGB(1,1,1);
 	scene->addDirectionalLight(light1);
 
 	renderer = new Renderer();
