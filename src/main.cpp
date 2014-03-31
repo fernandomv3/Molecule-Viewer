@@ -47,6 +47,7 @@ void initializeContext(){
 		SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
 		window = SDL_CreateWindow(
 			"Molecule",
 			SDL_WINDOWPOS_UNDEFINED,
