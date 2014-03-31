@@ -74,7 +74,13 @@ void Molecule::readPDB(const char* filename){
 	      	char* recordName = substr(line,0,6);
 	      	if(!strcmp(recordName,"ENDMDL")) break;
 	      	if(!strcmp(recordName,"ATOM  ") || !strcmp(recordName,"HETATM")){
-	      		char* element = isspace(line[12]) || isdigit(line[12])? substr(line,13,1): substr(line,12,2);
+	      		char* element;
+	      		if (isspace(line[76]) && isspace(line[77])){
+	      			element = isspace(line[12]) || isdigit(line[12])? substr(line,13,1): substr(line,12,2);
+	      		}
+	      		else{
+	      			element = isspace(line[76])? substr(line,77,1) : substr(line,76,2);
+	      		}
 	      		//create material for both representations
 	      		Material* atomMaterial = matPool->getAtomMaterial(element);
 	      		if(!atomMaterial){
