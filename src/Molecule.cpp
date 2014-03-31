@@ -26,6 +26,7 @@ Molecule::Molecule(const char* filename){
 	this->x=0;
 	this->y=0;
 	this->z=0;
+	this->connections = NULL;
 	this->readPDB(filename);
 }
 
@@ -38,12 +39,30 @@ Molecule::~Molecule(){
 	}
 }
 
+void Molecule::initConnectionMatrix(int numAtoms,bool value){
+  if (connections != NULL){
+		for(int i=0; i < numAtoms; i++){
+			delete (this->connections[i]);
+		}
+	}
+	this->connections = new bool*[numAtoms];
+	for(int i = 0; i < this->numAtoms;i++){
+		this->connections[i] = new bool[this->numAtoms];
+	}
+	for(int i=0;i<numAtoms;i++){
+		for(int j=0; j<numAtoms;j++){
+			this->connections[i][j] = false;
+		}
+	}
+}
+
 void Molecule::readPDB(const char* filename){
 	ifstream pdbFile;
 	char line [90];
 	int num = this->numAtoms;
 	pdbFile.open(filename);
 	if (pdbFile.is_open()){
+		int endAtoms = false;
 		this->numAtoms =0;
 		AtomMaterialPool* matPool = AtomMaterialPool::getInstance();
 		AtomRadiusTable* radiusTable = AtomRadiusTable::getInstance();
@@ -53,10 +72,14 @@ void Molecule::readPDB(const char* filename){
 	      pdbFile.getline(line,81);
 	      if(strlen(line) == 80){
 	      	char* recordName = substr(line,0,6);
+	      	if(!strcmp(recordName,"ENDMDL")) break;
 	      	if(!strcmp(recordName,"ATOM  ") || !strcmp(recordName,"HETATM")){
 	      		char* element = isspace(line[12]) || isdigit(line[12])? substr(line,13,1): substr(line,12,2);
 	      		//create material for both representations
 	      		Material* atomMaterial = matPool->getAtomMaterial(element);
+	      		if(!atomMaterial){
+	      			atomMaterial = new PhongMaterial();
+	      		}
 	      		//create mesh for ball & stick
 	      		Mesh* atomMesh = new Mesh(atomGeometry,atomMaterial);
 	      		//create mesh for spacefill
@@ -102,8 +125,34 @@ void Molecule::readPDB(const char* filename){
 	      		this->z += atom->getMesh()->getPosition()->getZ();
 	      		(this->numAtoms)++;
 	      	}
+	      	else{
+	      		if(!strcmp(recordName,"CONECT")){
+	      			if(!endAtoms){
+	      				this->initConnectionMatrix(this->numAtoms,false);
+	      				endAtoms = true;
+	      			}
+	      			char* atomSerialNo = substr(line,6,5);
+	      			int atom = atoi(atomSerialNo);
+	      			//printf("%d",atom );
+	      			delete atomSerialNo;
+	      			for(int i =0; i< 4; i++){
+	      				char* bondedAtom = substr(line,11+(5*i),5);
+	      				int bonded = atoi(bondedAtom);
+	      				//printf("\t%d",bonded );
+	      				if(bonded){
+	      					this->connections[atom][bonded] = true;
+	      				}
+	      				delete bondedAtom;
+	      			}
+	      			//printf("\n");
+	      		}
+	      	}
 	      	delete recordName;
 	      }
+	    }
+	    if(!endAtoms){
+	      	this->initConnectionMatrix(this->numAtoms,false);
+	      	endAtoms = true;
 	    }
 	    pdbFile.close();
 	    this->x /= this->numAtoms;
@@ -123,6 +172,7 @@ Mesh* Molecule::createBond(Atom* a1, Atom* a2){
 	destVec->setX(a2->getMesh()->getPosition()->getX()- a1->getMesh()->getPosition()->getX());
 	destVec->setY(a2->getMesh()->getPosition()->getY()- a1->getMesh()->getPosition()->getY());
 	destVec->setZ(a2->getMesh()->getPosition()->getZ()- a1->getMesh()->getPosition()->getZ());
+	float length = destVec->length();
 	destVec->normalize();
 	Quaternion* quat = Quaternion::rotationBetweenVectors(upVec, destVec);
 	delete upVec;
@@ -131,7 +181,7 @@ Mesh* Molecule::createBond(Atom* a1, Atom* a2){
 
 	mesh->getScale()->setX(0.6);
 	mesh->getScale()->setY(0.6);
-	mesh->getScale()->setZ(0.2);
+	mesh->getScale()->setZ(0.2 * length);
 	Vec3* oldPos= mesh->getPosition();
 	mesh->setPosition(position);
 	delete oldPos;
@@ -150,15 +200,6 @@ Vec3* Molecule::getBondPos(Vec3* atomPos1, Vec3* atomPos2){
 }
 
 void Molecule::calculateConnections(int num){
-	if (connections != NULL){
-		for(int i=0; i < num; i++){
-			delete (this->connections[i]);
-		}
-	}
-	this->connections = new bool*[this->numAtoms];
-	for(int i = 0; i < this->numAtoms;i++){
-		this->connections[i] = new bool[this->numAtoms];
-	}
 	Geometry* geom = new Geometry();
 	geom->loadDataFromFile("cylinder.mesh");
 	Material* mat = new PhongMaterial();
@@ -168,13 +209,18 @@ void Molecule::calculateConnections(int num){
 	for(int i = 0; i < this->numAtoms; i++){
 		for(int j=i+1; j< this->numAtoms;j++){
 			if( Molecule::atomsConnected(this->atoms[i],this->atoms[j]) ){
+				this->connections[i][j] = true;
+			}
+		}
+	}
+	for(int i = 0; i < this->numAtoms; i++){
+		for(int j=i+1; j< this->numAtoms;j++){
+			if( this->connections[i][j]){
 				Mesh * bond = createBond(this->atoms[i],this->atoms[j]);
 				bond->setGeometry(geom);
 				bond->setMaterial(mat);
 				this->bonds.push_back(bond);
-				this->connections[i][j] = true;
 			}
-			this->connections[i][j] = false;
 		}
 	}
 }

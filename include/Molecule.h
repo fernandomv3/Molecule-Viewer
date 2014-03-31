@@ -16,6 +16,7 @@ private:
 	float y;
 	float z;
 	int numAtoms;
+	void initConnectionMatrix(int numAtoms,bool value);
 public:
 	Molecule(const char* filename);
 	~Molecule();
