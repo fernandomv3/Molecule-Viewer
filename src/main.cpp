@@ -25,9 +25,10 @@
 Renderer* renderer;
 Scene* scene;
 Molecule* mol;
+DirectionalLight* light1;
 
-const int SCREEN_WIDTH = 800;
-const int SCREEN_HEIGHT = 600;
+const int SCREEN_WIDTH = 1280;
+const int SCREEN_HEIGHT = 720;
 
 SDL_Window* window = NULL;
 SDL_Surface* screenSurface;
@@ -43,6 +44,7 @@ void initializeContext(){
 		SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
 		window = SDL_CreateWindow(
 			"Molecule",
 			SDL_WINDOWPOS_UNDEFINED,
@@ -90,6 +92,25 @@ void initializeContext(){
 	}
 }
 
+void updateLightSphericalPosition(float deltaPhi, float deltaTheta){
+	Vec3* molPos = new Vec3(mol->getX(),mol->getY(),mol->getZ());
+	SphericalCoord* sphCoord = new SphericalCoord(light1->getPosition(),molPos);
+	sphCoord->setR(10);
+	float phi = sphCoord->getPhi() + deltaPhi;
+	float theta = sphCoord->getTheta() + deltaTheta;
+	phi = fmax(MINANG,fmin(MAXANG,phi));
+	phi = fmax( EPS, fmin( PI - EPS, phi ));
+	sphCoord->setPhi(phi);
+	sphCoord->setTheta(theta);
+	Vec3* newPos = sphCoord->getCartesian(molPos);
+	light1->getPosition()->setX(newPos->getX());
+	light1->getPosition()->setY(newPos->getY());
+	light1->getPosition()->setZ(newPos->getZ());
+	delete sphCoord;
+	delete molPos;
+	delete newPos;
+}
+
 //move this function as a method of Object3D
 void updateCamSphericalPosition(float deltaPhi, float deltaTheta, float radiusFactor){
 	Camera* camera = scene->getCamera();
@@ -121,7 +142,19 @@ bool handleEvents(){
 				switch(event.key.keysym.sym){
 					case SDLK_SPACE:
 						mol->toggleSpaceFill();
-					break;
+						break;
+					case SDLK_w:
+						updateLightSphericalPosition(-0.2,0);
+						break;
+					case SDLK_s:
+						updateLightSphericalPosition(0.2,0);
+						break;
+					case SDLK_a:
+						updateLightSphericalPosition(0,-0.2);
+						break;
+					case SDLK_d:
+						updateLightSphericalPosition(0,0.2);
+						break;
 				}
 				break;
 			case SDL_MOUSEMOTION:
@@ -179,10 +212,11 @@ int main(int argc, char** argv){
 	mol->addToScene(scene);
 	Camera* camera = scene->getCamera();
 	camera->setTarget(new Vec3(mol->getX(),mol->getY(),mol->getZ()));
-	DirectionalLight* light1 = new DirectionalLight();
+	light1 = new DirectionalLight();
 	light1->getPosition()->setX(2.0);
 	light1->getPosition()->setY(4.0);
 	light1->getPosition()->setZ(5.0);
+	light1->getColor()->setRGB(1,1,1);
 	scene->addDirectionalLight(light1);
 
 	renderer = new Renderer();
