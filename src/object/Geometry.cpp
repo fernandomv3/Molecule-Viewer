@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 Geometry::Geometry(){
 	this->numMeshes =0;
@@ -14,6 +15,7 @@ Geometry::Geometry(){
 	this->vertexBuffer = 0;
 	this->elementBuffer =0;
 	this->normalBuffer =0;
+	this->boundingBox =NULL;
 }
 GLfloat* Geometry::getVertices(){
 	return this->vertices;
@@ -47,6 +49,9 @@ Geometry::~Geometry(){
 		delete [] this->elements;
 	if(this->normals != NULL)
 		delete [] this->normals;
+	if(this->boundingBox != NULL){
+		delete this->boundingBox;
+	}
 	glDeleteBuffers(1,&(this->elementBuffer));
 	glDeleteBuffers(1,&(this->vertexBuffer));
 	glDeleteBuffers(1,&(this->normalBuffer));
@@ -88,11 +93,29 @@ void exchangeNormalPosition(GLfloat* dest,GLfloat* src,GLuint destIndex,GLuint s
 void Geometry::loadDataFromFile(const char* filename){//change to read without fopen & read .dae(collada files)
 	FILE * data = fopen(filename,"r");
 	if(data == NULL) return;
+	//creating bounding box
+	this->boundingBox = new struct bounds;
+	this->boundingBox->x[0]=9999;
+	this->boundingBox->x[1]=0;
+	this->boundingBox->y[0]=9999;
+	this->boundingBox->y[1]=0;
+	this->boundingBox->z[0]=9999;
+	this->boundingBox->z[1]=0;
 
 	fscanf(data, "%d", &(this->numVertices));
 	this->vertices = new GLfloat[this->numVertices];
-	for(int i=0; i < this->numVertices;i++){
-		fscanf(data,"%f",&(this->vertices[i]));
+	for(int i=0; i < this->numVertices;i+=3){
+		float x,y,z;
+		fscanf(data,"%f%f%f",&x,&y,&z);
+		this->vertices[i] = x;
+		this->vertices[i+1] = y;
+		this->vertices[i+2] = z;
+		this->boundingBox->x[0]=fmin(this->boundingBox->x[0],x);
+		this->boundingBox->x[1]=fmax(this->boundingBox->x[1],x);
+		this->boundingBox->y[0]=fmin(this->boundingBox->y[0],y);
+		this->boundingBox->y[1]=fmax(this->boundingBox->y[1],y);
+		this->boundingBox->z[0]=fmin(this->boundingBox->z[0],z);
+		this->boundingBox->z[1]=fmax(this->boundingBox->z[1],z);
 	}
 
 	fscanf(data, "%d", &(this->numNormals));
@@ -102,7 +125,7 @@ void Geometry::loadDataFromFile(const char* filename){//change to read without f
 	}
 	GLfloat orderedNormals[this->numNormals];
 	fscanf(data, "%d", &(this->numElements));
-        this->numElements *=3;
+    this->numElements *=3;
 	this->elements = new GLushort[this->numElements];
 	unsigned short int normalIndex;
 	for(int i=0; i< this->numElements ;i++){
@@ -132,4 +155,7 @@ void Geometry::setNormalBuffer(GLuint normalBuffer){
 	this->normalBuffer = normalBuffer;
 }
 
+BoundingBox Geometry::getBoundingBox(){
+	return this->boundingBox;
+}
 

@@ -8,6 +8,7 @@
 #include "light/Light.h"
 #include "light/DirectionalLight.h"
 #include "light/PointLight.h"
+#include "scene/OctreeNode.h"
 
 using namespace std;
 
@@ -23,6 +24,7 @@ private:
 	GLuint pointLightsUBO;
 	GLuint directionalLightsUBO;
 	GLuint ambientLightUBO;
+	OctreeNode* octree;
 public:
 	Scene();
 	list<Object3D*> getObjects();
@@ -44,6 +46,7 @@ public:
 	GLuint getAmbientLightUBO();
 	void setDirectionalLightsUBO(GLuint directionalLightsUBO);
 	void setAmbientLightUBO(GLuint ambientLightUBO);
+	OctreeNode* getOctree();
 	~Scene();
 };
 #endif

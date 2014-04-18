@@ -293,5 +293,86 @@ void Renderer::render(Scene * scene){
 			(void*)0 //offset
 		);
 		glDisableVertexAttribArray(mesh->getMaterial()->getProgram()->getAttrPosition());
+		if((*it)->getOctreeNode() == NULL)
+			scene->getOctree()->addObject(*it);
+	}
+	scene->getOctree()->print(0);
+	this->renderOctreeNode(scene->getOctree());
+}
+
+void Renderer::renderOctreeNode(OctreeNode* node){
+	printf("Node: %p\n", (void*) node);
+	printf("evaluating mesh\n");
+	Mesh* mesh = node->getBoundingBox();
+	if(mesh == NULL){
+		printf("NULL\n");
+	} 
+	else{
+		printf("Valido!\n");
+	}
+	printf("evaluating geometry\n");
+	if(mesh->getGeometry() == NULL){
+		printf("NULL\n");
+	} 
+	else{
+		printf("Valido!\n");
+	}
+	//create buffers
+	if(mesh->getGeometry()->getVertexBuffer() == 0 && mesh->getGeometry()->getVertices() != NULL){
+		GLuint buf = this->makeBuffer(
+			GL_ARRAY_BUFFER,
+			mesh->getGeometry()->getVertices(),
+			mesh->getGeometry()->getNumVertices() * sizeof(GLfloat)
+		);
+        mesh->getGeometry()->setVertexBuffer(buf);
+	}
+	if(mesh->getGeometry()->getElementBuffer() == 0 && mesh->getGeometry()->getElements() != NULL){
+		GLuint buf = this->makeBuffer(
+			GL_ELEMENT_ARRAY_BUFFER,
+			mesh->getGeometry()->getElements(),
+			mesh->getGeometry()->getNumElements() * sizeof(GLushort)
+		);
+        mesh->getGeometry()->setElementBuffer(buf);
+	}
+	//set vertex attribute
+	glBindBuffer(GL_ARRAY_BUFFER,mesh->getGeometry()->getVertexBuffer());
+	glVertexAttribPointer(
+		mesh->getMaterial()->getProgram()->getAttrPosition(),//attribute from prgram(position)
+		2,//number of components per vertex
+		GL_FLOAT,//type of data
+		GL_FALSE,//normalized
+		0,//separation between 2 values
+		(void*)0 //offset
+	);
+	glEnableVertexAttribArray(mesh->getMaterial()->getProgram()->getAttrPosition());
+	//set model matrix
+	mesh->updateModelMatrix();
+	glUniformMatrix4fv(
+		mesh->getMaterial()->getProgram()->getUniforms()->unifModelMatrix,
+		1,
+		GL_TRUE,
+		mesh->getModelMatrix()->getElements()
+	);
+	//set diffuse color
+	GLfloat* diffuseColor = mesh->getMaterial()->getDiffuseColor()->getAsArray();
+	glUniform4fv(
+		mesh->getMaterial()->getProgram()->getUniforms()->unifDiffuseColor,
+		1,
+		diffuseColor
+	);
+	delete diffuseColor;
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,mesh->getGeometry()->getElementBuffer());
+	glDrawElements(
+		GL_LINES, //drawing mode
+		mesh->getGeometry()->getNumElements(), //count
+		GL_UNSIGNED_SHORT, //type,
+		(void*)0 //offset
+	);
+	glDisableVertexAttribArray(mesh->getMaterial()->getProgram()->getAttrPosition());
+	printf("drawn!\n");
+	list<OctreeNode*>::iterator it = node->getChildren().begin();
+	list<OctreeNode*>::iterator end = node->getChildren().end();
+	for(;it != end;it++){
+		renderOctreeNode(*it);
 	}
 }

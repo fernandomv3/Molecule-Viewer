@@ -7,9 +7,11 @@ OBJS = $(BUILDDIR)/Vec3.o \
        $(BUILDDIR)/GouraudMaterial.o \
        $(BUILDDIR)/PhongMaterial.o \
        $(BUILDDIR)/CelMaterial.o \
+       $(BUILDDIR)/LineMaterial.o \
        $(BUILDDIR)/Object3D.o \
        $(BUILDDIR)/Mesh.o \
        $(BUILDDIR)/Scene.o \
+       $(BUILDDIR)/OctreeNode.o \
        $(BUILDDIR)/Renderer.o \
        $(BUILDDIR)/Euler.o \
        $(BUILDDIR)/Quaternion.o \
@@ -75,13 +77,15 @@ PhongMaterial.h : Material.h
 
 CelMaterial.h : Material.h
 
+LineMaterial.h : Material.h
+
 Object3D.h : Vec3.h Mat4.h Euler.h Quaternion.h
 
 Mesh.h : Object3D.h Material.h  Geometry.h
 
-Scene.h : Object3D.h Camera.h
+Scene.h : Object3D.h Camera.h OctreeNode.h
 
-Renderer.h : Scene.h Mesh.h
+Renderer.h : Scene.h Mesh.h OctreeNode.h
 
 Camera.h : Object3D.h
 
@@ -100,6 +104,8 @@ Atom.h : Mesh.h
 AtomMaterialPool.h : PhongMaterial.h
 
 Molecule.h : Atom.h Scene.h
+
+OctreeNode.h : Object3D.h
 
 $(BUILDDIR)/main.o : $(SRCDIR)/main.cpp $(INCDIR)/object/Mesh.h $(INCDIR)/object/Geometry.h $(INCDIR)/object/Object3D.h $(INCDIR)/math/Vec3.h $(INCDIR)/math/Mat4.h $(INCDIR)/material/Material.h $(INCDIR)/render/GLProgram.h $(INCDIR)/material/BasicMaterial.h $(INCDIR)/scene/Scene.h $(INCDIR)/render/Renderer.h
 	@echo compiling molecule

@@ -1,5 +1,6 @@
 #include "object/Object3D.h"
 #include <cstdlib>
+#include "scene/OctreeNode.h"
 
 Object3D::Object3D(){
 	this->visible = true;
@@ -8,7 +9,7 @@ Object3D::Object3D(){
 	this->quaternion = new Quaternion(0,0,0,1);
 	this->scale = new Vec3(1,1,1);
 	this->modelMatrix = Mat4::identityMatrix();
-
+	this->octreeNode = NULL;
 	this->rotation->quaternion = this->quaternion;
 	this->quaternion->euler=this->rotation;
 	//this->quaternion->setFromEuler(this->rotation,false);
@@ -108,12 +109,23 @@ void Object3D::updateModelMatrix(){
 }
 
 bool Object3D::getVisible(){
-	return this->visible;
+	return this->visible 
+	       && 
+	       (this->octreeNode != NULL ? this->octreeNode->isVisible() : true);
 }
 
 void Object3D::setVisible(bool visible){
 	this->visible = visible;
 }
+
+OctreeNode* Object3D::getOctreeNode(){
+	return this->octreeNode;
+}
+
+void Object3D::setOctreeNode(OctreeNode* octreeNode){
+	this->octreeNode = octreeNode;
+}
+
 
 
 

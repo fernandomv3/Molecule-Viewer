@@ -8,7 +8,8 @@
 class Mesh : public Object3D{
 private:
 	Geometry * geometry;
-	Material * material;	
+	Material * material;
+	BoundingBox boundingBox;
 public:
 	Mesh();
 	Mesh(Geometry* geometry);
@@ -18,6 +19,8 @@ public:
 	Geometry * getGeometry();
 	void setGeometry(Geometry* geometry);
 	~Mesh();
+	BoundingBox getBoundingBox();
+	void updateBoundingBox();
 };
 
 #endif

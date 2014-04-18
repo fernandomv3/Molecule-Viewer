@@ -6,6 +6,8 @@
 #include "math/Quaternion.h"
 #include "math/Euler.h"
 
+class OctreeNode;
+
 class Object3D{
 private:
 	Vec3* position;
@@ -14,6 +16,7 @@ private:
 	Vec3* scale;
 	Mat4 * modelMatrix;
 	bool visible;
+	OctreeNode* octreeNode;
 public:
 	Object3D();
 	virtual ~Object3D();
@@ -29,6 +32,8 @@ public:
 	Quaternion* getQuaternion();
 	bool getVisible();
 	void setVisible(bool visible);
+	OctreeNode* getOctreeNode();
+	void setOctreeNode(OctreeNode* octreeNode);
 };
 
 #endif

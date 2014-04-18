@@ -4,6 +4,7 @@
 #include <GL/glew.h>
 #include "light/DirectionalLight.h"
 #include "material/Material.h"
+#include "scene/OctreeNode.h"
 
 struct dirLightsChunk{
   struct dirLight lights[10];
@@ -29,6 +30,7 @@ public:
 	GLuint makeBuffer(GLenum target, void* bufferData, GLsizei bufferSize);
 	GLuint makeUBO(void* bufferData, GLsizei bufferSize);
 	GLuint makePointBuffer(GLenum target, void* bufferData, GLsizei bufferSize);
+	void renderOctreeNode(OctreeNode* node);
 };
 
 #endif

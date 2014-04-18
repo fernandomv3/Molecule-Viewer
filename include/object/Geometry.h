@@ -3,6 +3,14 @@
 #include <GL/glew.h>
 //Geometry owns Buffers (Vertex, Normal, UVs)
 //Future add -> facesArray, bounding box, normals array
+struct bounds{
+	GLfloat x[2];
+	GLfloat y[2];
+	GLfloat z[2];
+};
+
+typedef struct bounds* BoundingBox;
+
 class Geometry{
 private:
 	GLfloat* vertices;
@@ -15,6 +23,7 @@ private:
 	GLuint vertexBuffer;
 	GLuint elementBuffer;
 	GLuint normalBuffer;
+	BoundingBox boundingBox;
 	~Geometry();
 public:
 	Geometry();
@@ -37,6 +46,7 @@ public:
 	void setNormalBuffer(GLuint normalBuffer);
 	void setElementBuffer(GLuint elementBuffer);
 	void loadDataFromFile(const char* filename);
+	BoundingBox getBoundingBox();
 };
 
 #endif
