@@ -3,9 +3,10 @@
 #include <vector>
 #include "Atom.h"
 #include "scene/Scene.h"
+#include "object/Object3D.h"
 using namespace std;
 
-class Molecule{
+class Molecule : public Object3D{
 private:
 	vector<Atom*> atoms;
 	vector<Atom*> spacefill;

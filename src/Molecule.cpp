@@ -265,14 +265,35 @@ bool Molecule::atomsConnected(Atom* a1, Atom* a2){
 void Molecule::addToScene(Scene* scene){
 	for (int i =0; i < this->numAtoms;i++){
 		scene->addObject((Object3D*)(this->atoms[i]->getMesh()));
+		this->objects.push_back((Object3D*)(this->atoms[i]->getMesh()));
+		this->atoms[i]->getMesh()->setParent(this);
 	}
 	int numBonds = this->bonds.size();
 	for (int i=0; i < numBonds;i++){
 		scene->addObject((Object3D*)(this->bonds[i]));
+		this->bonds[i]->setParent(this);
+		this->objects.push_back((Object3D*)(this->bonds[i]));
 	}
 	for (int i =0; i < this->numAtoms;i++){
 		scene->addObject((Object3D*)(this->spacefill[i]->getMesh()));
+		this->spacefill[i]->getMesh()->setParent(this);
+		this->objects.push_back((Object3D*)(this->spacefill[i]->getMesh()));
 	}
+	/*for (int i =0; i < this->numAtoms;i++){
+		this->objects.push_back((Object3D*)(this->atoms[i]->getMesh()));
+		this->atoms[i]->getMesh()->setParent(this);
+	}
+	int numBonds = this->bonds.size();
+	for (int i=0; i < numBonds;i++){
+		this->bonds[i]->setParent(this);
+		this->objects.push_back((Object3D*)(this->bonds[i]));
+	}
+	for (int i =0; i < this->numAtoms;i++){
+		this->spacefill[i]->getMesh()->setParent(this);
+		this->objects.push_back((Object3D*)(this->spacefill[i]->getMesh()));
+	}
+	scene->addObject((Object3D*)this);
+	*/
 }
 
 float Molecule::getX(){
