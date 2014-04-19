@@ -208,7 +208,6 @@ int main(int argc, char** argv){
 	/*int c;
 	scanf("%d",&c);*/
 	scene = new Scene();
-	printf("%p\n",(void*)(scene->getOctree()));	
 	mol = new Molecule("caffeine.pdb");
 	mol->addToScene(scene);
 	Camera* camera = scene->getCamera();
@@ -219,7 +218,6 @@ int main(int argc, char** argv){
 	light1->getPosition()->setZ(5.0);
 	light1->getColor()->setRGB(1,1,1);
 	scene->addDirectionalLight(light1);
-	printf("%f %f %f\n",mol->getX(),mol->getY(),mol->getZ() );
 	scene->getOctree()->getPosition()->setX(mol->getX());
 	scene->getOctree()->getPosition()->setY(mol->getY());
 	scene->getOctree()->getPosition()->setZ(mol->getZ());
