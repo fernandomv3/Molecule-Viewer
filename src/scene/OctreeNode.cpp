@@ -1,8 +1,10 @@
 #include "scene/OctreeNode.h"
 #include "material/PhongMaterial.h"
+#include "material/GouraudMaterial.h"
+#include "material/LineMaterial.h"
 #include <string.h>
 
-float OctreeNode::threshold =0.1;
+float OctreeNode::threshold =0.01;
 
 OctreeNode::OctreeNode(){
 	this->parent = NULL;
@@ -57,19 +59,20 @@ Mesh* OctreeNode::getBoundingBox(){
 
 void OctreeNode::generateBoundingBox(){
 	Geometry* box;
-	PhongMaterial* mat;
+	LineMaterial* mat;
 	float newScale=1;
 	if(this->parent == NULL || 
 	   this->parent->boundingBox == NULL || 
 	   this->parent->boundingBox->getGeometry() == NULL){ 
-		box = Geometry::generateCubeGeometry(this->size);
-		mat = new PhongMaterial();
+		box = Geometry::generateCubeWireframe(this->size);
+		mat = new LineMaterial();
 	}
 	else{
 		box = this->parent->boundingBox->getGeometry();
-		mat = (PhongMaterial*)this->parent->boundingBox->getMaterial();
+		mat = (LineMaterial*)this->parent->boundingBox->getMaterial();
 		newScale = 0.5/(this->level);
 	}
+	mat->getDiffuseColor()->setRGB(0,0,0);
 	Mesh* cube = new Mesh(box,mat);
 	cube->getScale()->setX(newScale);
 	cube->getScale()->setY(newScale);

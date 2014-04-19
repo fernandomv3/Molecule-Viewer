@@ -48,6 +48,7 @@ public:
 	void loadDataFromFile(const char* filename);
 	BoundingBox getBoundingBox();
 	static Geometry* generateCubeGeometry(float size);
+	static Geometry* generateCubeWireframe(float size);
 };
 
 #endif

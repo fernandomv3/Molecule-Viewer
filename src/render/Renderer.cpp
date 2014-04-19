@@ -365,7 +365,7 @@ void Renderer::renderOctreeNode(OctreeNode* node){
 	setMaterialUniforms(mesh->getMaterial());
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,mesh->getGeometry()->getElementBuffer());
 	glDrawElements(
-		GL_LINE_STRIP, //drawing mode
+		GL_LINES, //drawing mode
 		mesh->getGeometry()->getNumElements(), //count
 		GL_UNSIGNED_SHORT, //type,
 		(void*)0 //offset

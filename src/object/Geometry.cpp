@@ -192,3 +192,38 @@ Geometry* Geometry::generateCubeGeometry(float size){
 	boxGeom->setNormals(normals,numVertices);
 	return boxGeom;
 }
+
+Geometry* Geometry::generateCubeWireframe(float size){
+	float dist = size/2;
+	int numVertices = 24;
+	int numElements = 24;
+	GLfloat* vertices = new GLfloat[numVertices];
+	GLfloat* normals = new GLfloat[numVertices];
+	GLushort* elements = new GLushort[numElements];
+	for(int i=0; i < 8; i++){
+		vertices[i*3] = dist * pow(-1,(i & 1 ? 1 :2));
+		vertices[(i*3)+1] = dist * pow(-1,(i & 2 ? 1 :2));
+		vertices[(i*3)+2] = dist * pow(-1,(i & 4 ? 1 :2));
+		normals[i*3] = vertices[i*3] * 0.5773502;
+		normals[(i*3)+1] = vertices[(i*3)+1] * 0.5773502;
+		normals[(i*3)+2] = vertices[(i*3)+2] * 0.5773502;
+	}
+
+	BoundingBox boundingBox = new struct bounds;
+	boundingBox->x[0]=vertices[21];
+	boundingBox->x[1]=vertices[0];
+	boundingBox->y[0]=vertices[22];
+	boundingBox->y[1]=vertices[1];
+	boundingBox->z[0]=vertices[23];
+	boundingBox->z[1]=vertices[2];
+
+	//GLushort elementArray[24] = {0,1,4,1,5,4,7,5,4,7,4,6,4,0,6,0,2,6,1,5,7,1,3,7,1,7,0,1,0,2,7,3,6,6,3,2};
+	GLushort elementArray[24] = {0,1,0,2,0,4,1,3,1,5,2,3,2,6,3,7,4,5,4,6,5,7,6,7};
+	memcpy(elements,elementArray, sizeof(GLushort)*24);
+	Geometry * boxGeom = new Geometry();
+	boxGeom->boundingBox = boundingBox;
+	boxGeom->setVertices(vertices,numVertices);
+	boxGeom->setElements(elements,numElements);
+	boxGeom->setNormals(normals,numVertices);
+	return boxGeom;
+}
