@@ -126,10 +126,11 @@ void Object3D::setOctreeNode(OctreeNode* octreeNode){
 	this->octreeNode = octreeNode;
 }
 
+Object3D* Object3D::getParent(){
+	return this->parent;
+}
 
-
-
-
-
-
+void Object3D::setParent(Object3D* parent){
+	this->parent = parent;
+}
 

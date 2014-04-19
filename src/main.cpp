@@ -132,6 +132,7 @@ void updateCamSphericalPosition(float deltaPhi, float deltaTheta, float radiusFa
 	delete sphCoord;
 	delete molPos;
 	delete newPos;
+	scene->getOctree()->calculateVisibility(camera);
 }
 
 bool handleEvents(){

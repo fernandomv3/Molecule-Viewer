@@ -4,7 +4,7 @@
 #include "material/LineMaterial.h"
 #include <string.h>
 
-float OctreeNode::threshold =0.01;
+float OctreeNode::threshold =0.1;
 
 OctreeNode::OctreeNode(){
 	this->parent = NULL;
@@ -93,7 +93,35 @@ float OctreeNode::getThreshold(){
 }
 
 void OctreeNode::calculateVisibility(Camera* camera){
+	BoundingBox bounds = new struct bounds;
+	Mesh* cube = this->getBoundingBox();
+	Mat4 * worldTraspose = camera->getWorldMatrix()->getTraspose();
+	Mat4 * projectionTraspose = camera->getProjectionMatrix()->getTraspose();
+	Vec3 vertices[8];
+	for(int i = 0; i < 8 ; i++){
+		vertices[i].setX(cube->getGeometry()->getBoundingBox()->x[(i & 1 ? 1 :0)]);
+		vertices[i].setY(cube->getGeometry()->getBoundingBox()->y[(i & 2 ? 1 :0)]);
+		vertices[i].setZ(cube->getGeometry()->getBoundingBox()->z[(i & 4 ? 1 :0)]);
 
+		Vec3* worldVert = vertices[i].applyMatrix(worldTraspose,1);
+		Vec3* newVert = worldVert->applyMatrix(projectionTraspose,1);
+		delete worldVert;
+		bounds->x[0]=fmin(bounds->x[0],newVert->getX());
+		bounds->x[1]=fmax(bounds->x[1],newVert->getX());
+		bounds->y[0]=fmin(bounds->y[0],newVert->getY());
+		bounds->y[1]=fmax(bounds->y[1],newVert->getY());
+		bounds->z[0]=fmin(bounds->z[0],newVert->getZ());
+		bounds->z[1]=fmax(bounds->z[1],newVert->getZ());
+		delete newVert;
+	}
+	if(bounds->x[0] < -1 || bounds->y[0] < -1 || bounds->z[0] < -1 ||
+	   bounds->x[1] > 1 || bounds->y[1] > 1 || bounds->z[1] > 1 ){
+		this->visible = true;
+		OctreeNodeIterator node = this->children.begin();
+		for(; node != this->children.end(); node++){
+			(*node)->calculateVisibility(camera);
+		}
+	}
 }
 
 bool OctreeNode::isVisible(){
@@ -157,6 +185,17 @@ void OctreeNode::subdivide(){
 
 void OctreeNode::updateObjectPosition(Object3D* object){
 
+	OctreeNode* actualNode = object->getOctreeNode();
+	actualNode->objects.remove(object);
+	if (actualNode->objectFits(object)){
+		actualNode->addObject(object);
+	}
+	OctreeNode* parent =actualNode->getParent();
+	if(parent == NULL){
+		actualNode->objects.push_back(object);
+	}
+	object->setOctreeNode(actualNode->getParent());
+	updateObjectPosition(object);
 }
 
 void OctreeNode::addObject(Object3D* object){
