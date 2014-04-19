@@ -19,11 +19,10 @@ LineMaterial::LineMaterial():Material(){
 		}");
     this->fragmentShaderSource=strdup(
     	"#version 410\n\
-		uniform vec4 diffuseColor;\n\
 		flat in vec4 color;\n\
     	out vec4 outputColor;\n\
     	void main(){\n\
-    		outputColor = color;\n\
+    		outputColor = vec4(0.0,1.0,0.0,0.0);\n\
     	}");
 	this->program = new GLProgram();
 	GLuint vertexShader = this->program->compileShader(GL_VERTEX_SHADER,this->vertexShaderSource);

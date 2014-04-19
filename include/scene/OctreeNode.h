@@ -14,13 +14,14 @@ class OctreeNode{
 private:
 	static float threshold;
 	OctreeNode* parent;
-	list<OctreeNode*> children;
-	list<Object3D*> objects;
 	float size;
 	Mesh* boundingBox;
 	bool visible;
 	Vec3* position;
+	int level;
 public:
+	list<OctreeNode*> children;
+	list<Object3D*> objects;
 	OctreeNode();
 	OctreeNode(Vec3* position, float size);
 	~OctreeNode();
@@ -47,7 +48,8 @@ public:
 	void setPosition(Vec3* position);
 	bool isDivided();
 	list<OctreeNode*> getChildren();
-	void print(int indent);
+	void generateTreeMesh();
+	void print();
 };
 
 

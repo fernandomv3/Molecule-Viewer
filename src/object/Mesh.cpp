@@ -62,6 +62,7 @@ void Mesh::updateBoundingBox(){
 		this->boundingBox->z[0]=9999;
 		this->boundingBox->z[1]=0;
 	}
+	this->updateModelMatrix();
 	Mat4* modelMatrix = this->getModelMatrix();
 	Vec3 vertices[8];
 	for(int i = 0; i < 8 ; i++){

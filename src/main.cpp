@@ -78,9 +78,9 @@ void initializeContext(){
 				printf("%s\n", version);
 				glEnable(GL_DEPTH_TEST);
 				glDepthFunc(GL_LEQUAL);
-				glEnable(GL_CULL_FACE);
-				glCullFace(GL_BACK);
-				glFrontFace(GL_CCW);
+				//glEnable(GL_CULL_FACE);
+				//glCullFace(GL_BACK);
+				//glFrontFace(GL_CCW);
 				glEnable(GL_MULTISAMPLE);
 				glHint(GL_LINE_SMOOTH_HINT, GL_NICEST );
 				glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST );
@@ -208,7 +208,8 @@ int main(int argc, char** argv){
 	/*int c;
 	scanf("%d",&c);*/
 	scene = new Scene();
-	mol = new Molecule("dna.pdb");
+	printf("%p\n",(void*)(scene->getOctree()));	
+	mol = new Molecule("caffeine.pdb");
 	mol->addToScene(scene);
 	Camera* camera = scene->getCamera();
 	camera->setTarget(new Vec3(mol->getX(),mol->getY(),mol->getZ()));
@@ -218,7 +219,11 @@ int main(int argc, char** argv){
 	light1->getPosition()->setZ(5.0);
 	light1->getColor()->setRGB(1,1,1);
 	scene->addDirectionalLight(light1);
-
+	printf("%f %f %f\n",mol->getX(),mol->getY(),mol->getZ() );
+	scene->getOctree()->getPosition()->setX(mol->getX());
+	scene->getOctree()->getPosition()->setY(mol->getY());
+	scene->getOctree()->getPosition()->setZ(mol->getZ());
+	scene->generateOctree();
 	renderer = new Renderer();
 	mainLoop();
 	cleanUp();

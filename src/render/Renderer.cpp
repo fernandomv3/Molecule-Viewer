@@ -293,58 +293,65 @@ void Renderer::render(Scene * scene){
 			(void*)0 //offset
 		);
 		glDisableVertexAttribArray(mesh->getMaterial()->getProgram()->getAttrPosition());
-		if((*it)->getOctreeNode() == NULL)
-			scene->getOctree()->addObject(*it);
 	}
-	scene->getOctree()->print(0);
 	this->renderOctreeNode(scene->getOctree());
 }
 
 void Renderer::renderOctreeNode(OctreeNode* node){
-	printf("Node: %p\n", (void*) node);
-	printf("evaluating mesh\n");
+
 	Mesh* mesh = node->getBoundingBox();
-	if(mesh == NULL){
-		printf("NULL\n");
-	} 
-	else{
-		printf("Valido!\n");
-	}
-	printf("evaluating geometry\n");
-	if(mesh->getGeometry() == NULL){
-		printf("NULL\n");
-	} 
-	else{
-		printf("Valido!\n");
-	}
-	//create buffers
 	if(mesh->getGeometry()->getVertexBuffer() == 0 && mesh->getGeometry()->getVertices() != NULL){
-		GLuint buf = this->makeBuffer(
-			GL_ARRAY_BUFFER,
-			mesh->getGeometry()->getVertices(),
-			mesh->getGeometry()->getNumVertices() * sizeof(GLfloat)
-		);
+		GLuint buf = this->makeBuffer(GL_ARRAY_BUFFER,
+						mesh->getGeometry()->getVertices(),
+						mesh->getGeometry()->getNumVertices() * sizeof(GLfloat)
+						);
         mesh->getGeometry()->setVertexBuffer(buf);
 	}
+
 	if(mesh->getGeometry()->getElementBuffer() == 0 && mesh->getGeometry()->getElements() != NULL){
-		GLuint buf = this->makeBuffer(
-			GL_ELEMENT_ARRAY_BUFFER,
-			mesh->getGeometry()->getElements(),
-			mesh->getGeometry()->getNumElements() * sizeof(GLushort)
-		);
+		GLuint buf = this->makeBuffer(GL_ELEMENT_ARRAY_BUFFER,
+						mesh->getGeometry()->getElements(),
+						mesh->getGeometry()->getNumElements() * sizeof(GLushort)
+						);
         mesh->getGeometry()->setElementBuffer(buf);
 	}
+
+	if(mesh->getGeometry()->getNormalBuffer() == 0 && mesh->getGeometry()->getNormals() != NULL){
+		GLuint buf = this->makeBuffer(GL_ELEMENT_ARRAY_BUFFER,
+						mesh->getGeometry()->getNormals(),
+						mesh->getGeometry()->getNumNormals() * sizeof(GLfloat)
+						);
+        mesh->getGeometry()->setNormalBuffer(buf);
+	}
 	//set vertex attribute
+
 	glBindBuffer(GL_ARRAY_BUFFER,mesh->getGeometry()->getVertexBuffer());
 	glVertexAttribPointer(
 		mesh->getMaterial()->getProgram()->getAttrPosition(),//attribute from prgram(position)
-		2,//number of components per vertex
+		3,//number of components per vertex
 		GL_FLOAT,//type of data
 		GL_FALSE,//normalized
 		0,//separation between 2 values
 		(void*)0 //offset
 	);
 	glEnableVertexAttribArray(mesh->getMaterial()->getProgram()->getAttrPosition());
+
+	//set normal attribute
+	if(mesh->getGeometry()->getNormalBuffer() != 0){
+		glBindBuffer(GL_ARRAY_BUFFER,mesh->getGeometry()->getNormalBuffer());
+		glVertexAttribPointer(
+			mesh->getMaterial()->getProgram()->getAttrNormal(),//attribute from prgram(position)
+			3,//number of components per vertex
+			GL_FLOAT,//type of data
+			GL_FALSE,//normalized
+			0,//separation between 2 values
+			(void*)0 //offset
+		);
+		glEnableVertexAttribArray(mesh->getMaterial()->getProgram()->getAttrNormal());
+	}
+
+	glUseProgram(mesh->getMaterial()->getProgram()->getProgram());
+
 	//set model matrix
 	mesh->updateModelMatrix();
 	glUniformMatrix4fv(
@@ -353,26 +360,21 @@ void Renderer::renderOctreeNode(OctreeNode* node){
 		GL_TRUE,
 		mesh->getModelMatrix()->getElements()
 	);
-	//set diffuse color
-	GLfloat* diffuseColor = mesh->getMaterial()->getDiffuseColor()->getAsArray();
-	glUniform4fv(
-		mesh->getMaterial()->getProgram()->getUniforms()->unifDiffuseColor,
-		1,
-		diffuseColor
-	);
-	delete diffuseColor;
+
+	//set material uniforms
+	setMaterialUniforms(mesh->getMaterial());
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,mesh->getGeometry()->getElementBuffer());
 	glDrawElements(
-		GL_LINES, //drawing mode
+		GL_LINE_STRIP, //drawing mode
 		mesh->getGeometry()->getNumElements(), //count
 		GL_UNSIGNED_SHORT, //type,
 		(void*)0 //offset
 	);
 	glDisableVertexAttribArray(mesh->getMaterial()->getProgram()->getAttrPosition());
-	printf("drawn!\n");
-	list<OctreeNode*>::iterator it = node->getChildren().begin();
-	list<OctreeNode*>::iterator end = node->getChildren().end();
+	if(!node->isDivided())return;
+	OctreeNodeIterator it = node->children.begin();
+	OctreeNodeIterator end = node->children.end();
 	for(;it != end;it++){
-		renderOctreeNode(*it);
+		renderOctreeNode((*it));
 	}
 }

@@ -47,6 +47,7 @@ public:
 	void setElementBuffer(GLuint elementBuffer);
 	void loadDataFromFile(const char* filename);
 	BoundingBox getBoundingBox();
+	static Geometry* generateCubeGeometry(float size);
 };
 
 #endif

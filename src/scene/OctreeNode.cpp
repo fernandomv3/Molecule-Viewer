@@ -1,15 +1,16 @@
 #include "scene/OctreeNode.h"
-#include "material/LineMaterial.h"
+#include "material/PhongMaterial.h"
 #include <string.h>
 
 float OctreeNode::threshold =0.1;
 
 OctreeNode::OctreeNode(){
 	this->parent = NULL;
-	this->size = 0;
+	this->size = 40;
 	this->visible = true;
 	this->boundingBox = NULL;
 	this->position = NULL;
+	this->level= 0;
 }
 
 OctreeNode::OctreeNode(Vec3* position, float size){
@@ -18,6 +19,7 @@ OctreeNode::OctreeNode(Vec3* position, float size){
 	this->visible = true;
 	this->boundingBox = NULL;
 	this->position = position;
+	this->level =0;
 }
 
 OctreeNode::~OctreeNode(){
@@ -54,34 +56,29 @@ Mesh* OctreeNode::getBoundingBox(){
 }
 
 void OctreeNode::generateBoundingBox(){
-	printf("starting boundingbox generation\n");
-	if (this->boundingBox){
-		printf("boundingbox already generated\n");
-		return;
-	} 
-
-	float dist = this->size/2;;
-	Vec3* center = this->getPosition();
-	if(center == NULL)printf("NULL\n");
-
-	int numVertices = 24;
-	int numElements = 24;
-	GLfloat* vertices = new GLfloat[numVertices];
-	GLushort* elements = new GLushort[numElements];
-	for(int i=0; i < 8; i++){
-		vertices[i] = center->getX()+ dist * pow(-1,(i & 1 ? 2 :1));
-		vertices[i+1] = center->getY()+ dist * pow(-1,(i & 1 ? 2 :1));
-		vertices[i+2] = center->getZ()+ dist * pow(-1,(i & 1 ? 2 :1));
+	Geometry* box;
+	PhongMaterial* mat;
+	float newScale=1;
+	if(this->parent == NULL || 
+	   this->parent->boundingBox == NULL || 
+	   this->parent->boundingBox->getGeometry() == NULL){ 
+		box = Geometry::generateCubeGeometry(this->size);
+		mat = new PhongMaterial();
 	}
-	GLushort elementArray[24] = {0,1,0,2,0,4,1,3,1,5,2,3,2,6,3,7,4,5,4,6,5,7,6,7};
-	memcpy(elements,elementArray, sizeof(GLushort)*24);
-	Geometry * boxGeom = new Geometry();
-	boxGeom->setVertices(vertices,numVertices);
-	boxGeom->setElements(elements,numElements);
-	LineMaterial* mat = new LineMaterial();
-	mat->getDiffuseColor()->setRGB(0,0,0);
-	this->boundingBox = new Mesh(boxGeom,mat);
-	printf("bounding box generated\n");
+	else{
+		box = this->parent->boundingBox->getGeometry();
+		mat = (PhongMaterial*)this->parent->boundingBox->getMaterial();
+		newScale = 0.5/(this->level);
+	}
+	Mesh* cube = new Mesh(box,mat);
+	cube->getScale()->setX(newScale);
+	cube->getScale()->setY(newScale);
+	cube->getScale()->setZ(newScale);
+	cube->getPosition()->setX(this->getPosition()->getX());
+	cube->getPosition()->setY(this->getPosition()->getY());
+	cube->getPosition()->setZ(this->getPosition()->getZ());
+
+	this->boundingBox = cube;
 }
 
 void OctreeNode::setThreshold(float threshold){
@@ -112,14 +109,16 @@ bool OctreeNode::objectFits(Object3D* object){
 	float dist = this->size/2 + OctreeNode::threshold;
 	Vec3* center = this->getPosition();
 	BoundingBox bounds = ((Mesh*)object)->getBoundingBox();
-	if((bounds->x[0] > (center->getX() - dist)) && 
-	   (bounds->x[1] < (center->getX() + dist)) &&
-	   (bounds->y[0] > (center->getY() - dist)) && 
-	   (bounds->y[1] < (center->getY() + dist)) &&
-	   (bounds->z[0] > (center->getZ() - dist)) && 
-	   (bounds->z[1] < (center->getZ() + dist))
-	)
+	if((bounds->x[0] >= (center->getX() - dist)) && 
+	   (bounds->x[1] <= (center->getX() + dist)) &&
+	   (bounds->y[0] >= (center->getY() - dist)) && 
+	   (bounds->y[1] <= (center->getY() + dist)) &&
+	   (bounds->z[0] >= (center->getZ() - dist)) && 
+	   (bounds->z[1] <= (center->getZ() + dist))
+	){
 		return true;
+		printf("fits!\n");
+	}
 	return false;
 }
 
@@ -139,13 +138,17 @@ void OctreeNode::clearChildren(){
 }
 
 void OctreeNode::subdivide(){
+	//if(this->level > 1) return;
 	float childSize = this->size /2;
 	for(int i = 0 ; i< 8; i++){
-		float x = this->position->getX() + (childSize/2) * pow(-1,(i & 1 ? 2 :1));
-		float y = this->position->getY() + (childSize/2) * pow(-1,(i & 2 ? 2 :1));
-		float z = this->position->getZ() + (childSize/2) * pow(-1,(i & 4 ? 2 :1));
+		float x = this->position->getX() + (childSize/2) * pow(-1,(i & 1 ? 1 :2));
+		float y = this->position->getY() + (childSize/2) * pow(-1,(i & 2 ? 1 :2));
+		float z = this->position->getZ() + (childSize/2) * pow(-1,(i & 4 ? 1 :2));
 		Vec3* childPos = new Vec3(x,y,z);
-		this->children.push_back(new OctreeNode(childPos,childSize));
+		OctreeNode* child = new OctreeNode(childPos,childSize);
+		child->parent = this;
+		child->level = this->level +1;
+		this->children.push_back(child);
 	}
 }
 
@@ -191,16 +194,22 @@ list<OctreeNode*> OctreeNode::getChildren(){
 	return this->children;
 }
 
-void OctreeNode::print(int indent){
-	for(int i=0; i< indent;i++){
-		printf("\t");
-	}
-	printf("node: address(%p)\t%d children\t%d objects\n",(void*)this,this->children.size(),this->objects.size());
+void OctreeNode::generateTreeMesh(){
 	this->generateBoundingBox();
 	OctreeNodeIterator node = this->children.begin();
 	for(; node != this->children.end(); node++){
-		(*node)->print(indent+1);
+		(*node)->generateTreeMesh();
 	}
 }
 
+void OctreeNode::print(){
+	for(int i=0; i< this->level;i++){
+		printf("  ");
+	}
+	printf("node %p\n", (void*)(this));
+	OctreeNodeIterator node = this->children.begin();
+	for(; node != this->children.end(); node++){
+		(*node)->print();
+	}
+}
 

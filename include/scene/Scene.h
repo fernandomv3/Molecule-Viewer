@@ -47,6 +47,7 @@ public:
 	void setDirectionalLightsUBO(GLuint directionalLightsUBO);
 	void setAmbientLightUBO(GLuint ambientLightUBO);
 	OctreeNode* getOctree();
+	void generateOctree();
 	~Scene();
 };
 #endif
