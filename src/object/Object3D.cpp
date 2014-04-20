@@ -99,6 +99,10 @@ void Object3D::updateModelMatrix(){
 	if(this->modelMatrix !=NULL)
 		delete this->modelMatrix;
 	this->modelMatrix = Mat4::identityMatrix();
+	if(parent != NULL){
+		this->parent->updateModelMatrix();
+		this->modelMatrix->crossProduct(this->parent->modelMatrix);
+	}
 	
 	this->modelMatrix->crossProduct(translation);
 	this->modelMatrix->crossProduct(rot);
