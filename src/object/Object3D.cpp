@@ -12,6 +12,7 @@ Object3D::Object3D(){
 	this->octreeNode = NULL;
 	this->rotation->quaternion = this->quaternion;
 	this->quaternion->euler=this->rotation;
+	this->parent = NULL;
 	//this->quaternion->setFromEuler(this->rotation,false);
 }
 

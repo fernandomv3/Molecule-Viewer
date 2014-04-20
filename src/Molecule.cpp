@@ -21,7 +21,7 @@ char* Molecule::substr(const char* source, int i, int n){
 	return substr;
 }
 
-Molecule::Molecule(const char* filename){
+Molecule::Molecule(const char* filename):Object3D(){
 	this->numAtoms =0;
 	this->x=0;
 	this->y=0;
