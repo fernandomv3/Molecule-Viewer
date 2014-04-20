@@ -139,3 +139,13 @@ void Object3D::setParent(Object3D* parent){
 	this->parent = parent;
 }
 
+void Object3D::updateOctreeNode(){
+	if(this->octreeNode != NULL){
+		this->octreeNode->updateObjectPosition(this);
+	}
+	list<Object3D*>::iterator it = this->objects.begin();
+	list<Object3D*>::iterator end = this->objects.end();
+	for(;it != end;it++){
+		(*it)->updateOctreeNode();
+	}
+}

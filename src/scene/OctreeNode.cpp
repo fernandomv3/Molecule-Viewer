@@ -189,6 +189,7 @@ void OctreeNode::updateObjectPosition(Object3D* object){
 	actualNode->objects.remove(object);
 	if (actualNode->objectFits(object)){
 		actualNode->addObject(object);
+		return;
 	}
 	OctreeNode* parent =actualNode->getParent();
 	if(parent == NULL){
@@ -201,9 +202,11 @@ void OctreeNode::updateObjectPosition(Object3D* object){
 void OctreeNode::addObject(Object3D* object){
 	//fitting validation must be done before this method
 	bool previouslyDivided = true;
+	bool previouslySubdivided = true;
 	if(!this->isDivided()){
 		this->subdivide();
 		previouslyDivided = false;
+		previouslySubdivided = false;
 	}
 	OctreeNodeIterator node = this->children.begin();
 	for(; node != this->children.end(); node++){
@@ -215,6 +218,7 @@ void OctreeNode::addObject(Object3D* object){
 	object->setOctreeNode(this);
 	this->objects.push_back(object);
 	if(!previouslyDivided){
+	if(!previouslySubdivided){
 		this->clearChildren();
 	} 
 	return;
@@ -249,9 +253,19 @@ void OctreeNode::print(){
 		printf("  ");
 	}
 	printf("node %p\n", (void*)(this));
+	printf("node %p\t%d\n", (void*)(this),this->objects.size());
 	OctreeNodeIterator node = this->children.begin();
 	for(; node != this->children.end(); node++){
 		(*node)->print();
 	}
+}
+
+int OctreeNode::objectsInBranch(){
+	int objectsInCurrentNode= this->objects.size();
+	OctreeNodeIterator node = this->children.begin();
+	for(; node != this->children.end(); node++){
+		objectsInCurrentNode += (*node)->objectsInBranch();
+	}
+	return objectsInCurrentNode;
 }
 

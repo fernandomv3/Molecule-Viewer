@@ -41,6 +41,7 @@ public:
 	void setOctreeNode(OctreeNode* octreeNode);
 	Object3D* getParent();
 	void setParent(Object3D* parent);
+	void updateOctreeNode();
 };
 
 #endif

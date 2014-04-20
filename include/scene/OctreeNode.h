@@ -50,6 +50,7 @@ public:
 	list<OctreeNode*> getChildren();
 	void generateTreeMesh();
 	void print();
+	int objectsInBranch();
 };
 
 

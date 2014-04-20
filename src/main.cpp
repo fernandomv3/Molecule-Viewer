@@ -156,6 +156,30 @@ bool handleEvents(){
 					case SDLK_d:
 						updateLightSphericalPosition(0,0.2);
 						break;
+					case SDLK_l:
+						mol->getPosition()->setX(mol->getPosition()->getX() + 0.5);
+						mol->updateOctreeNode();
+						scene->getOctree()->generateTreeMesh();
+						break;
+					case SDLK_j:
+						mol->getPosition()->setX(mol->getPosition()->getX() - 0.5);
+						mol->updateOctreeNode();
+						scene->getOctree()->generateTreeMesh();
+						break;
+					case SDLK_i:
+						mol->getPosition()->setY(mol->getPosition()->getY() + 0.5);
+						mol->updateOctreeNode();
+						scene->getOctree()->generateTreeMesh();
+						break;
+					case SDLK_k:
+						mol->getPosition()->setY(mol->getPosition()->getY() - 0.5);
+						mol->updateOctreeNode();
+						scene->getOctree()->generateTreeMesh();
+						break;
+					case SDLK_p:
+						printf("printing tree!\n");
+						scene->getOctree()->print();
+						break;
 				}
 				break;
 			case SDL_MOUSEMOTION:
