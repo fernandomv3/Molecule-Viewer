@@ -246,6 +246,9 @@ int main(int argc, char** argv){
 	scene->getOctree()->getPosition()->setX(mol->getX());
 	scene->getOctree()->getPosition()->setY(mol->getY());
 	scene->getOctree()->getPosition()->setZ(mol->getZ());
+	/*mol->getPosition()->setX(5);
+	mol->getPosition()->setY(5);
+	mol->getPosition()->setZ(3);*/
 	scene->generateOctree();
 	renderer = new Renderer();
 	mainLoop();
