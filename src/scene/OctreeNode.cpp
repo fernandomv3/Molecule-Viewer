@@ -70,7 +70,7 @@ void OctreeNode::generateBoundingBox(){
 	else{
 		box = this->parent->boundingBox->getGeometry();
 		mat = (LineMaterial*)this->parent->boundingBox->getMaterial();
-		newScale = 0.5/(this->level);
+		newScale = this->parent->boundingBox->getScale()->getX() * 0.5;
 	}
 	mat->getDiffuseColor()->setRGB(0,0,0);
 	Mesh* cube = new Mesh(box,mat);
@@ -148,7 +148,6 @@ bool OctreeNode::objectFits(Object3D* object){
 	   (bounds->z[1] <= (center->getZ() + dist))
 	){
 		return true;
-		printf("fits!\n");
 	}
 	return false;
 }
@@ -187,6 +186,9 @@ void OctreeNode::updateObjectPosition(Object3D* object){
 
 	OctreeNode* actualNode = object->getOctreeNode();
 	actualNode->objects.remove(object);
+	if(actualNode->objectsInBranch()==0){
+		actualNode->clearChildren();
+	}
 	if (actualNode->objectFits(object)){
 		actualNode->addObject(object);
 		return;
@@ -194,8 +196,9 @@ void OctreeNode::updateObjectPosition(Object3D* object){
 	OctreeNode* parent =actualNode->getParent();
 	if(parent == NULL){
 		actualNode->objects.push_back(object);
+		return;
 	}
-	object->setOctreeNode(actualNode->getParent());
+	object->setOctreeNode(parent);
 	updateObjectPosition(object);
 }
 
@@ -249,7 +252,7 @@ void OctreeNode::print(){
 	for(int i=0; i< this->level;i++){
 		printf("  ");
 	}
-	printf("node %p\t%d\n", (void*)(this),this->objects.size());
+	printf("node %p\t%lu\n", (void*)(this),this->objects.size());
 	OctreeNodeIterator node = this->children.begin();
 	for(; node != this->children.end(); node++){
 		(*node)->print();

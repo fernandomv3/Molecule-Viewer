@@ -176,6 +176,16 @@ bool handleEvents(){
 						mol->updateOctreeNode();
 						scene->getOctree()->generateTreeMesh();
 						break;
+					case SDLK_u:
+						mol->getPosition()->setZ(mol->getPosition()->getZ() + 0.5);
+						mol->updateOctreeNode();
+						scene->getOctree()->generateTreeMesh();
+						break;
+					case SDLK_o:
+						mol->getPosition()->setZ(mol->getPosition()->getZ() - 0.5);
+						mol->updateOctreeNode();
+						scene->getOctree()->generateTreeMesh();
+						break;
 					case SDLK_p:
 						printf("printing tree!\n");
 						scene->getOctree()->print();
