@@ -55,13 +55,14 @@ BoundingBox Mesh::getBoundingBox(){
 void Mesh::updateBoundingBox(){
 	if(this->boundingBox == NULL){
 		this->boundingBox = new struct bounds;
-		this->boundingBox->x[0]=9999;
-		this->boundingBox->x[1]=0;
-		this->boundingBox->y[0]=9999;
-		this->boundingBox->y[1]=0;
-		this->boundingBox->z[0]=9999;
-		this->boundingBox->z[1]=0;
 	}
+	this->boundingBox->x[0]=9999;
+	this->boundingBox->x[1]=-9999;
+	this->boundingBox->y[0]=9999;
+	this->boundingBox->y[1]=-9999;
+	this->boundingBox->z[0]=9999;
+	this->boundingBox->z[1]=-9999;
+
 	this->updateModelMatrix();
 	Mat4* modelMatrix = this->getModelMatrix();
 	Vec3 vertices[8];
