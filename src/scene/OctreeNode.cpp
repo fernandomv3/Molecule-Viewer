@@ -252,7 +252,7 @@ void OctreeNode::print(){
 	for(int i=0; i< this->level;i++){
 		printf("  ");
 	}
-	printf("node %p\t%lu\n", (void*)(this),this->objects.size());
+	printf("node:%p\tobjects:%lu:visible:%s\n", (void*)(this),this->objects.size(),this->visible ? "true":"false");
 	OctreeNodeIterator node = this->children.begin();
 	for(; node != this->children.end(); node++){
 		(*node)->print();
