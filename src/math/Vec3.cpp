@@ -56,12 +56,18 @@ GLfloat Vec3::getComponent(int index){
 	return (GLfloat)NULL;
 }
 
-Vec3* Vec3::applyMatrix(Mat4* matrix, GLfloat w){
+Vec3* Vec3::applyMatrix(Mat4* matrix, GLfloat w, bool normalize){
 	Vec3* vector = new Vec3();
 	GLfloat* mat = matrix->getElements();
 	vector->x = mat[0]*this->x + mat[1]*this->y + mat[2] *this->z + mat[3]*w;
 	vector->y = mat[4]*this->x + mat[5]*this->y + mat[6] *this->z + mat[7]*w;
 	vector->z = mat[8]*this->x + mat[9]*this->y + mat[10] *this->z + mat[11]*w;
+	if (normalize){
+		GLfloat newW  = mat[12]*this->x + mat[13]*this->y + mat[14] *this->z + mat[15]*w;
+		vector->x /= newW;
+		vector->y /= newW;
+		vector->z /= newW;
+	}
 	return vector;
 }
 
@@ -125,3 +131,11 @@ Vec3* Vec3::subVectors(Vec3* v1, Vec3* v2){
 	return res;
 }
 
+bool Vec3::insideUnitCube(){
+	if( this->x <= 1 && this->x >= -1 &&
+		this->y <= 1 && this->y >= -1 &&
+		this->z <= 1 && this->z >= -1){
+		return true;
+	}
+	return false;
+}
