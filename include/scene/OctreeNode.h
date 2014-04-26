@@ -7,6 +7,8 @@
 #include <list>
 using namespace std;
 
+#define MAX_LEVELS 3
+
 #define Object3DIterator list<Object3D*>::iterator
 #define OctreeNodeIterator list<OctreeNode*>::iterator
 

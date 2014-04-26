@@ -294,7 +294,7 @@ void Renderer::render(Scene * scene){
 		);
 		glDisableVertexAttribArray(mesh->getMaterial()->getProgram()->getAttrPosition());
 	}
-	this->renderOctreeNode(scene->getOctree());
+	//this->renderOctreeNode(scene->getOctree());
 }
 
 void Renderer::renderOctreeNode(OctreeNode* node){

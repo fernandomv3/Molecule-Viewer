@@ -67,5 +67,5 @@ GLfloat Color::getComponent(char component){
 		case 'b':
 			return this->b;
 	}
-	return NULL;
+	return (GLfloat)NULL;
 }
