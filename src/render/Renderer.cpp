@@ -286,8 +286,9 @@ void Renderer::render(Scene * scene){
 		setMaterialUniforms(mesh->getMaterial());
 		
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,mesh->getGeometry()->getElementBuffer());
+		glPatchParameteri(GL_PATCH_VERTICES, 3);
 		glDrawElements(
-			GL_TRIANGLES, //drawing mode
+			GL_PATCHES, //drawing mode
 			mesh->getGeometry()->getNumElements(), //count
 			GL_UNSIGNED_SHORT, //type,
 			(void*)0 //offset

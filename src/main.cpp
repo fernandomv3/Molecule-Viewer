@@ -187,6 +187,16 @@ bool handleEvents(){
 						//sphere->updateOctreeNode();
 						//scene->getOctree()->generateTreeMesh();
 						break;
+					case SDLK_u:
+						mol->getPosition()->setZ(mol->getPosition()->getZ() + 0.5);
+						mol->updateOctreeNode();
+						scene->getOctree()->generateTreeMesh();
+						break;
+					case SDLK_o:
+						mol->getPosition()->setZ(mol->getPosition()->getZ() - 0.5);
+						mol->updateOctreeNode();
+						scene->getOctree()->generateTreeMesh();
+						break;
 					case SDLK_p:
 						printf("printing tree!\n");
 						//scene->getOctree()->print();
@@ -244,6 +254,11 @@ int main(int argc, char** argv){
 	/*int c;
 	scanf("%d",&c);*/
 	scene = new Scene();
+<<<<<<< HEAD
+=======
+	mol = new Molecule("dna.pdb");
+	mol->addToScene(scene);
+>>>>>>> master
 	Camera* camera = scene->getCamera();
 	camera->setTarget(new Vec3(0,0,0));
 	Geometry* geom = new Geometry();

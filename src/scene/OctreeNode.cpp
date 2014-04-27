@@ -3,13 +3,14 @@
 #include "material/GouraudMaterial.h"
 #include "material/LineMaterial.h"
 #include <string.h>
+#include <cassert>
 
 float OctreeNode::threshold =0.1;
 
 OctreeNode::OctreeNode(){
 	this->parent = NULL;
 	this->size = 40;
-	this->visible = true;
+	this->visible = false;
 	this->boundingBox = NULL;
 	this->position = NULL;
 	this->level= 0;
@@ -18,7 +19,7 @@ OctreeNode::OctreeNode(){
 OctreeNode::OctreeNode(Vec3* position, float size){
 	this->parent = NULL;
 	this->size = size;
-	this->visible = true;
+	this->visible = false;
 	this->boundingBox = NULL;
 	this->position = position;
 	this->level =0;
@@ -93,34 +94,44 @@ float OctreeNode::getThreshold(){
 }
 
 void OctreeNode::calculateVisibility(Camera* camera){
-	BoundingBox bounds = new struct bounds;
-	Mesh* cube = this->getBoundingBox();
-	Mat4 * worldTraspose = camera->getWorldMatrix()->getTraspose();
-	Mat4 * projectionTraspose = camera->getProjectionMatrix()->getTraspose();
-	Vec3 vertices[8];
-	for(int i = 0; i < 8 ; i++){
-		vertices[i].setX(cube->getGeometry()->getBoundingBox()->x[(i & 1 ? 1 :0)]);
-		vertices[i].setY(cube->getGeometry()->getBoundingBox()->y[(i & 2 ? 1 :0)]);
-		vertices[i].setZ(cube->getGeometry()->getBoundingBox()->z[(i & 4 ? 1 :0)]);
-
-		Vec3* worldVert = vertices[i].applyMatrix(worldTraspose,1);
-		Vec3* newVert = worldVert->applyMatrix(projectionTraspose,1);
-		delete worldVert;
-		bounds->x[0]=fmin(bounds->x[0],newVert->getX());
-		bounds->x[1]=fmax(bounds->x[1],newVert->getX());
-		bounds->y[0]=fmin(bounds->y[0],newVert->getY());
-		bounds->y[1]=fmax(bounds->y[1],newVert->getY());
-		bounds->z[0]=fmin(bounds->z[0],newVert->getZ());
-		bounds->z[1]=fmax(bounds->z[1],newVert->getZ());
-		delete newVert;
-	}
-	if(bounds->x[0] < -1 || bounds->y[0] < -1 || bounds->z[0] < -1 ||
-	   bounds->x[1] > 1 || bounds->y[1] > 1 || bounds->z[1] > 1 ){
-		this->visible = true;
-		OctreeNodeIterator node = this->children.begin();
-		for(; node != this->children.end(); node++){
-			(*node)->calculateVisibility(camera);
+	this->visible = false;
+	if(this->parent == NULL || this->parent->visible){
+		Mat4 * worldTraspose = camera->getWorldMatrix();
+		Mat4 * projectionTraspose = camera->getProjectionMatrix();
+		Vec3 vertices[8];
+		BoundingBox bounds = new struct bounds;
+		bounds->x[0]=9999;
+		bounds->x[1]=-9999;
+		bounds->y[0]=9999;
+		bounds->y[1]=-9999;
+		bounds->z[0]=9999;
+		bounds->z[1]=-9999;
+		for(int i = 0; i < 8 ; i++){
+			vertices[i].setX(this->position->getX() + this->size/2 * pow(-1,(i & 1 ? 1 :2)));
+			vertices[i].setY(this->position->getY() + this->size/2 * pow(-1,(i & 2 ? 1 :2)));
+			vertices[i].setZ(this->position->getZ() + this->size/2 * pow(-1,(i & 4 ? 1 :2)));
+			Vec3* worldVert = vertices[i].applyMatrix(worldTraspose,1);
+			Vec3* newVert = worldVert->applyMatrix(projectionTraspose,1,true);
+			delete worldVert;
+			bounds->x[0]=fmin(bounds->x[0],newVert->getX());
+			bounds->x[1]=fmax(bounds->x[1],newVert->getX());
+			bounds->y[0]=fmin(bounds->y[0],newVert->getY());
+			bounds->y[1]=fmax(bounds->y[1],newVert->getY());
+			bounds->z[0]=fmin(bounds->z[0],newVert->getZ());
+			bounds->z[1]=fmax(bounds->z[1],newVert->getZ());
+			delete newVert;
 		}
+
+		if(bounds->x[0] < 1 && bounds->y[0] < 1 && bounds->z[0] < 1 &&
+		   bounds->x[1] > -1 && bounds->y[1] > -1 && bounds->z[1] > -1 ){
+			this->visible = true;
+			
+		}
+		delete bounds;
+	}
+	OctreeNodeIterator node = this->children.begin();
+	for(; node != this->children.end(); node++){
+		(*node)->calculateVisibility(camera);
 	}
 }
 
@@ -168,7 +179,7 @@ void OctreeNode::clearChildren(){
 }
 
 void OctreeNode::subdivide(){
-	if(this->level > 3) return;
+	if(this->level >= MAX_LEVELS) return;
 	float childSize = this->size /2;
 	for(int i = 0 ; i< 8; i++){
 		float x = this->position->getX() + (childSize/2) * pow(-1,(i & 1 ? 1 :2));
@@ -252,7 +263,7 @@ void OctreeNode::print(){
 	for(int i=0; i< this->level;i++){
 		printf("  ");
 	}
-	printf("node %p\t%lu\n", (void*)(this),this->objects.size());
+	printf("node:%p\tobjects:%lu visible:%s\n", (void*)(this),this->objects.size(),this->visible ? "true":"false");
 	OctreeNodeIterator node = this->children.begin();
 	for(; node != this->children.end(); node++){
 		(*node)->print();

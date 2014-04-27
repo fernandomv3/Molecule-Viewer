@@ -19,7 +19,7 @@ public:
 	GLfloat getZ();
 	void setComponent(int index, GLfloat value);
 	GLfloat getComponent(int index);
-	Vec3* applyMatrix(Mat4* matrix, GLfloat w);
+	Vec3* applyMatrix(Mat4* matrix, GLfloat w, bool normalize = false);
 	void crossProduct(Vec3* vec);
 	static Vec3* crossProductVectors(Vec3* v1, Vec3* v2);
 	static Vec3* addVectors(Vec3* v1, Vec3* v2);
@@ -28,6 +28,7 @@ public:
 	GLfloat distance(Vec3* vec);
 	void normalize();
 	GLfloat length();
+	bool insideUnitCube();
 };
 
 #endif

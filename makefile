@@ -8,6 +8,7 @@ OBJS = $(BUILDDIR)/Vec3.o \
        $(BUILDDIR)/PhongMaterial.o \
        $(BUILDDIR)/CelMaterial.o \
        $(BUILDDIR)/LineMaterial.o \
+       $(BUILDDIR)/TessMaterial.o \
        $(BUILDDIR)/Object3D.o \
        $(BUILDDIR)/Mesh.o \
        $(BUILDDIR)/Scene.o \
@@ -78,6 +79,8 @@ PhongMaterial.h : Material.h
 CelMaterial.h : Material.h
 
 LineMaterial.h : Material.h
+
+TessMaterial.h : Material.h
 
 Object3D.h : Vec3.h Mat4.h Euler.h Quaternion.h
 
