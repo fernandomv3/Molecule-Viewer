@@ -1,15 +1,15 @@
-#include "material/PhongMaterial.h"
+#include "material/TessMaterial.h"
 #include <string.h>
 #include <cassert>
 #include <stdio.h>
 
-PhongMaterial::PhongMaterial():Material(){
+TessMaterial::TessMaterial():Material(){
 	this->vertexShaderSource= strdup(
 		"#version 410\n\
 		in vec3 normal;\n\
 		in vec3 position;\n\
-		out vec4 vertexNormal;\n\
-		out vec4 worldSpacePosition;\n\
+		out vec4 vNormal;\n\
+		out vec4 vPos;\n\
 		layout(std140) uniform globalMatrices{\n\
 			mat4 worldMatrix;\n\
 			mat4 projectionMatrix;\n\
@@ -19,9 +19,52 @@ PhongMaterial::PhongMaterial():Material(){
 			vec4 pos = vec4(position,1.0);\n\
 			vec4 modelSpace = modelMatrix * pos;\n\
 			vec4 worldSpace = worldMatrix * modelSpace;\n\
-			gl_Position = projectionMatrix * worldSpace;\n\
-			worldSpacePosition = worldSpace;\n\
-			vertexNormal = normalize(worldMatrix * modelMatrix * vec4(normal,0.0));\n\
+			vPos = worldSpace;\n\
+			vNormal = normalize(worldMatrix * modelMatrix * vec4(normal,0.0));\n\
+		}");
+	this->tessControlShaderSource = strdup(
+		"#version 410\n\
+		layout(vertices = 3) out;\n\
+		in vec4 vNormal[];\n\
+		in vec4 vPos[];\n\
+		out vec4 tcPos[];\n\
+		out vec4 tcNormal[];\n\
+		\n\
+		#define ID gl_InvocationID\n\
+		\n\
+		void main(){\n\
+			tcPos[ID] = vPos[ID];\n\
+			tcNormal[ID] = vNormal[ID];\n\
+			if(ID ==0){\n\
+				gl_TessLevelInner[0] = 1;\n\
+				gl_TessLevelOuter[0] = 1;\n\
+				gl_TessLevelOuter[1] = 1;\n\
+				gl_TessLevelOuter[2] = 1;\n\
+			}\n\
+		}\n\
+		");
+	this->tessEvaluationShaderSource= strdup(
+		"#version 410\n\
+		layout(triangles, equal_spacing, ccw) in;\n\
+		in vec4 tcPos[];\n\
+		in vec4 tcNormal[];\n\
+		out vec4 tePos;\n\
+		out vec4 teNormal;\n\
+		layout(std140) uniform globalMatrices{\n\
+			mat4 worldMatrix;\n\
+			mat4 projectionMatrix;\n\
+		};\n\
+		void main(){\n\
+			vec4 p0 = gl_TessCoord.x * tcPos[0];\n\
+			vec4 p1 = gl_TessCoord.y * tcPos[1];\n\
+			vec4 p2 = gl_TessCoord.z * tcPos[2];\n\
+			\n\
+			vec4 n0 = gl_TessCoord.x * tcNormal[0];\n\
+			vec4 n1 = gl_TessCoord.y * tcNormal[1];\n\
+			vec4 n2 = gl_TessCoord.z * tcNormal[2];\n\
+			tePos = normalize(p0+p1+p2);\n\
+			teNormal = normalize(n0+n1+n2);\n\
+			gl_Position = projectionMatrix * tePos;\n\
 		}");
     this->fragmentShaderSource=strdup(
     	"#version 410\n\
@@ -59,8 +102,8 @@ PhongMaterial::PhongMaterial():Material(){
 		};\n\
 		\n\
 		uniform Material material;\n\
-    	in vec4 vertexNormal;\n\
-		in vec4 worldSpacePosition;\n\
+    	in vec4 teNormal;\n\
+		in vec4 tePos;\n\
     	out vec4 outputColor;\n\
     	vec4 attenuateLight(in vec4 color, in float attenuation, in vec4 vectorToLight){\n\
 			float distSqr = dot(vectorToLight,vectorToLight);\n\
@@ -84,11 +127,11 @@ PhongMaterial::PhongMaterial():Material(){
     	}\n\
     	\n\
     	void main(){\n\
-    		vec4 viewDirection = normalize(-worldSpacePosition);\n\
+    		vec4 viewDirection = normalize(-tePos);\n\
 			outputColor = vec4(0.0,0.0,0.0,1.0);\n\
 			for(int i=0; i< numDirLights ;i++){\n\
 				vec4 normDirection = normalize(dirLights[i].vectorToLight);\n\
-				vec4 normal = normalize(vertexNormal);\n\
+				vec4 normal = normalize(teNormal);\n\
 				float cosAngIncidence;\n\
 				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,normal,viewDirection,material.shininess,cosAngIncidence);\n\
 				\n\
@@ -96,10 +139,10 @@ PhongMaterial::PhongMaterial():Material(){
             	outputColor = outputColor + (material.specularColor * blinnPhongTerm);\n\
 			}\n\
 			for(int i=0; i< numPointLights ;i++){\n\
-				vec4 difference = pLights[i].position - worldSpacePosition;\n\
+				vec4 difference = pLights[i].position - tePos;\n\
 				vec4 normDirection = normalize(difference);\n\
 				vec4 attenLightIntensity = attenuateLight(pLights[i].color,pLights[i].attenuation,difference);\n\
-				vec4 normal = normalize(vertexNormal);\n\
+				vec4 normal = normalize(teNormal);\n\
 				float cosAngIncidence;\n\
 				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,normal,viewDirection,material.shininess,cosAngIncidence);\n\
 				\n\
@@ -111,9 +154,13 @@ PhongMaterial::PhongMaterial():Material(){
 	this->program = new GLProgram();
 	GLuint vertexShader = this->program->compileShader(GL_VERTEX_SHADER,this->vertexShaderSource);
 	GLuint fragmentShader = this->program->compileShader(GL_FRAGMENT_SHADER,this->fragmentShaderSource);
+	GLuint tessControlShader = this->program->compileShader(GL_TESS_CONTROL_SHADER,this->tessControlShaderSource);
+	GLuint tessEvaluationShader = this->program->compileShader(GL_TESS_EVALUATION_SHADER,this->tessEvaluationShaderSource);
 	this->program->setVertexShader(vertexShader);
 	this->program->setFragmentShader(fragmentShader);
-	GLuint prog = this->program->linkProgram(vertexShader,fragmentShader);
+	this->program->setTessControlShader(tessControlShader);
+	this->program->setTessEvaluationShader(tessEvaluationShader);
+	GLuint prog = this->program->linkProgramTessellation(vertexShader,fragmentShader,tessControlShader,tessEvaluationShader);
 	this->program->setProgram(prog);
 	this->program->setAttrPosition(glGetAttribLocation(prog, "position"));
 	this->program->setAttrNormal(glGetAttribLocation(prog, "normal"));

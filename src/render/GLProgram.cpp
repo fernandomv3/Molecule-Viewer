@@ -134,3 +134,39 @@ GLProgram::~GLProgram(){
     if(this->uniforms != NULL) delete uniforms;
 }
 
+GLuint GLProgram::getTessControlShader(){
+    return this->tessControlShader;
+}
+
+GLuint GLProgram::getTessEvaluationShader(){
+    return this->tessEvaluationShader;
+}
+
+void GLProgram::setTessEvaluationShader(GLuint tessEvaluationShader){
+    this->tessEvaluationShader = tessEvaluationShader;
+}
+
+void GLProgram::setTessControlShader(GLuint tessControlShader){
+    this->tessControlShader = tessControlShader;
+}
+
+GLuint GLProgram::linkProgramTessellation(GLuint vertexShader, GLuint fragmentShader, GLuint tessControlShader, GLuint tessEvaluationShader){
+    GLint programOk;
+
+    GLuint program = glCreateProgram();
+    glAttachShader(program, vertexShader);
+    glAttachShader(program, tessControlShader);
+    glAttachShader(program, tessEvaluationShader);
+    glAttachShader(program, fragmentShader);
+    glLinkProgram(program);
+    glGetProgramiv(program, GL_LINK_STATUS, &programOk);
+    if (!programOk) {
+        fprintf(stderr, "Failed to link shader program:\n");
+        show_info_log(program, glGetProgramiv, glGetProgramInfoLog);
+        glDeleteProgram(program);
+        return 0;
+    }
+    return program;
+}
+
+
