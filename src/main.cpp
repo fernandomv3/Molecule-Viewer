@@ -78,9 +78,9 @@ void initializeContext(){
 				printf("%s\n", version);
 				glEnable(GL_DEPTH_TEST);
 				glDepthFunc(GL_LEQUAL);
-				//glEnable(GL_CULL_FACE);
-				//glCullFace(GL_BACK);
-				//glFrontFace(GL_CCW);
+				glEnable(GL_CULL_FACE);
+				glCullFace(GL_BACK);
+				glFrontFace(GL_CCW);
 				glEnable(GL_MULTISAMPLE);
 				glHint(GL_LINE_SMOOTH_HINT, GL_NICEST );
 				glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST );

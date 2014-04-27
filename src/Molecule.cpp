@@ -4,6 +4,7 @@
 #include "object/Mesh.h"
 #include "material/PhongMaterial.h"
 #include "material/GouraudMaterial.h"
+#include "material/TessMaterial.h"
 #include <fstream>
 #include <iostream>
 #include <cstdlib>
@@ -67,7 +68,7 @@ void Molecule::readPDB(const char* filename){
 		AtomMaterialPool* matPool = AtomMaterialPool::getInstance();
 		AtomRadiusTable* radiusTable = AtomRadiusTable::getInstance();
 		Geometry* atomGeometry = new Geometry();
-	    atomGeometry->loadDataFromFile("highres-icosphere.mesh");
+	    atomGeometry->loadDataFromFile("icosphere.mesh");
 	    while (!pdbFile.eof()){
 	      pdbFile.getline(line,81);
 	      if(strlen(line) == 80){
@@ -84,7 +85,7 @@ void Molecule::readPDB(const char* filename){
 	      		//create material for both representations
 	      		Material* atomMaterial = matPool->getAtomMaterial(element);
 	      		if(!atomMaterial){
-	      			atomMaterial = new PhongMaterial();
+	      			atomMaterial = new TessMaterial();
 	      		}
 	      		//create mesh for ball & stick
 	      		Mesh* atomMesh = new Mesh(atomGeometry,atomMaterial);
