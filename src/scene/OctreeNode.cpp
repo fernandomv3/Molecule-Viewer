@@ -168,7 +168,7 @@ void OctreeNode::clearChildren(){
 }
 
 void OctreeNode::subdivide(){
-	//if(this->level > 1) return;
+	if(this->level > 3) return;
 	float childSize = this->size /2;
 	for(int i = 0 ; i< 8; i++){
 		float x = this->position->getX() + (childSize/2) * pow(-1,(i & 1 ? 1 :2));

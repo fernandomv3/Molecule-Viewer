@@ -14,7 +14,7 @@ Scene::Scene(){
 	this->directionalLightsUBO = 0;
 	this->pointLightsUBO=0;
 	this->ambientLightUBO = 0;
-	this->octree = new OctreeNode(new Vec3(0,0,0),40);
+	this->octree = new OctreeNode(new Vec3(0,0,0),128);
 }
 
 list<Object3D*> Scene::getObjects(){

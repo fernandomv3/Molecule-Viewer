@@ -21,6 +21,7 @@
 #define EPS 0.000001
 #define MAXANG PI
 #define MINANG 0
+#define NUM_SPHERES 64
 
 Renderer* renderer;
 Scene* scene;
@@ -158,37 +159,37 @@ bool handleEvents(){
 						break;
 					case SDLK_l:
 						sphere->getPosition()->setX(sphere->getPosition()->getX() + 2);
-						sphere->updateOctreeNode();
-						scene->getOctree()->generateTreeMesh();
+						//sphere->updateOctreeNode();
+						//scene->getOctree()->generateTreeMesh();
 						break;
 					case SDLK_j:
 						sphere->getPosition()->setX(sphere->getPosition()->getX() - 2);
-						sphere->updateOctreeNode();
-						scene->getOctree()->generateTreeMesh();
+						//sphere->updateOctreeNode();
+						//scene->getOctree()->generateTreeMesh();
 						break;
 					case SDLK_i:
 						sphere->getPosition()->setY(sphere->getPosition()->getY() + 2);
-						sphere->updateOctreeNode();
-						scene->getOctree()->generateTreeMesh();
+						//sphere->updateOctreeNode();
+						//scene->getOctree()->generateTreeMesh();
 						break;
 					case SDLK_k:
 						sphere->getPosition()->setY(sphere->getPosition()->getY() - 2);
-						sphere->updateOctreeNode();
-						scene->getOctree()->generateTreeMesh();
+						//sphere->updateOctreeNode();
+						//scene->getOctree()->generateTreeMesh();
 						break;
 					case SDLK_u:
 						sphere->getPosition()->setZ(sphere->getPosition()->getZ() + 2);
-						sphere->updateOctreeNode();
-						scene->getOctree()->generateTreeMesh();
+						//sphere->updateOctreeNode();
+						//scene->getOctree()->generateTreeMesh();
 						break;
 					case SDLK_o:
 						sphere->getPosition()->setZ(sphere->getPosition()->getZ() - 2);
-						sphere->updateOctreeNode();
-						scene->getOctree()->generateTreeMesh();
+						//sphere->updateOctreeNode();
+						//scene->getOctree()->generateTreeMesh();
 						break;
 					case SDLK_p:
 						printf("printing tree!\n");
-						scene->getOctree()->print();
+						//scene->getOctree()->print();
 						break;
 				}
 				break;
@@ -248,11 +249,20 @@ int main(int argc, char** argv){
 	Geometry* geom = new Geometry();
 	geom->loadDataFromFile("highres-icosphere.mesh");
 	PhongMaterial* mat = new PhongMaterial();
-	mat->getDiffuseColor()->setRGB(0.5,0.5,0.5);
+	mat->getDiffuseColor()->setRGB(0.4,0.1,0.1);
 	sphere = new Mesh(geom,mat);
 	sphere->getPosition()->setX(1.0);
 	sphere->getPosition()->setY(1.0);
 	sphere->getPosition()->setZ(1.0);
+	Mesh* esferas[NUM_SPHERES][NUM_SPHERES];
+	for(int i = 0; i < NUM_SPHERES;i++){
+		for(int j=0; j< NUM_SPHERES;j++){
+			esferas[i][j] = new Mesh(geom,mat);
+			esferas[i][j]->getPosition()->setX(3*(i- NUM_SPHERES/2));
+			esferas[i][j]->getPosition()->setY(3*(NUM_SPHERES/2 - j));
+			scene->addObject((Object3D*)esferas[i][j]);
+		}
+	}
 	scene->addObject((Object3D*)sphere);
 	light1 = new DirectionalLight();
 	light1->getPosition()->setX(2.0);
