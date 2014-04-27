@@ -23,7 +23,8 @@ TessMaterial::TessMaterial():Material(){
 			vNormal = normalize(worldMatrix * modelMatrix * vec4(normal,0.0));\n\
 		}");
 	this->tessControlShaderSource = strdup(
-		"#version 410\n\
+		"#version 410 core\n\
+		#extension GL_ARB_tessellation_shader : require\n\
 		layout(vertices = 3) out;\n\
 		in vec4 vNormal[];\n\
 		in vec4 vPos[];\n\
@@ -37,14 +38,15 @@ TessMaterial::TessMaterial():Material(){
 			tcNormal[ID] = vNormal[ID];\n\
 			if(ID ==0){\n\
 				gl_TessLevelInner[0] = 1;\n\
-				gl_TessLevelOuter[0] = 1;\n\
-				gl_TessLevelOuter[1] = 1;\n\
-				gl_TessLevelOuter[2] = 1;\n\
+				gl_TessLevelOuter[0] = 2;\n\
+				gl_TessLevelOuter[1] = 2;\n\
+				gl_TessLevelOuter[2] = 2;\n\
 			}\n\
 		}\n\
 		");
 	this->tessEvaluationShaderSource= strdup(
-		"#version 410\n\
+		"#version 410 core\n\
+		#extension GL_ARB_tessellation_shader : require\n\
 		layout(triangles, equal_spacing, ccw) in;\n\
 		in vec4 tcPos[];\n\
 		in vec4 tcNormal[];\n\

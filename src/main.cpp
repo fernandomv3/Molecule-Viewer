@@ -14,6 +14,7 @@
 #include "scene/Scene.h"
 #include "render/Renderer.h"
 #include "material/PhongMaterial.h"
+#include "material/TessMaterial.h"
 #include "Molecule.h"
 #include "math/SphericalCoord.h"
 
@@ -79,9 +80,9 @@ void initializeContext(){
 				printf("%s\n", version);
 				glEnable(GL_DEPTH_TEST);
 				glDepthFunc(GL_LEQUAL);
-				//glEnable(GL_CULL_FACE);
-				//glCullFace(GL_BACK);
-				//glFrontFace(GL_CCW);
+				glEnable(GL_CULL_FACE);
+				glCullFace(GL_BACK);
+				glFrontFace(GL_CCW);
 				glEnable(GL_MULTISAMPLE);
 				glHint(GL_LINE_SMOOTH_HINT, GL_NICEST );
 				glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST );
@@ -187,16 +188,6 @@ bool handleEvents(){
 						//sphere->updateOctreeNode();
 						//scene->getOctree()->generateTreeMesh();
 						break;
-					case SDLK_u:
-						mol->getPosition()->setZ(mol->getPosition()->getZ() + 0.5);
-						mol->updateOctreeNode();
-						scene->getOctree()->generateTreeMesh();
-						break;
-					case SDLK_o:
-						mol->getPosition()->setZ(mol->getPosition()->getZ() - 0.5);
-						mol->updateOctreeNode();
-						scene->getOctree()->generateTreeMesh();
-						break;
 					case SDLK_p:
 						printf("printing tree!\n");
 						//scene->getOctree()->print();
@@ -254,30 +245,16 @@ int main(int argc, char** argv){
 	/*int c;
 	scanf("%d",&c);*/
 	scene = new Scene();
-<<<<<<< HEAD
-=======
-	mol = new Molecule("dna.pdb");
-	mol->addToScene(scene);
->>>>>>> master
 	Camera* camera = scene->getCamera();
 	camera->setTarget(new Vec3(0,0,0));
 	Geometry* geom = new Geometry();
-	geom->loadDataFromFile("highres-icosphere.mesh");
-	PhongMaterial* mat = new PhongMaterial();
+	geom->loadDataFromFile("icosphere.mesh");
+	TessMaterial* mat = new TessMaterial();
 	mat->getDiffuseColor()->setRGB(0.4,0.1,0.1);
 	sphere = new Mesh(geom,mat);
 	sphere->getPosition()->setX(1.0);
 	sphere->getPosition()->setY(1.0);
 	sphere->getPosition()->setZ(1.0);
-	Mesh* esferas[NUM_SPHERES][NUM_SPHERES];
-	for(int i = 0; i < NUM_SPHERES;i++){
-		for(int j=0; j< NUM_SPHERES;j++){
-			esferas[i][j] = new Mesh(geom,mat);
-			esferas[i][j]->getPosition()->setX(3*(i- NUM_SPHERES/2));
-			esferas[i][j]->getPosition()->setY(3*(NUM_SPHERES/2 - j));
-			scene->addObject((Object3D*)esferas[i][j]);
-		}
-	}
 	scene->addObject((Object3D*)sphere);
 	light1 = new DirectionalLight();
 	light1->getPosition()->setX(2.0);
