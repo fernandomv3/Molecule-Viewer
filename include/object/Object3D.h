@@ -21,6 +21,7 @@ private:
 	bool visible;
 	OctreeNode* octreeNode;
 	Object3D* parent;
+	float distanceToCamera;
 public:
 	list<Object3D*> objects;
 	Object3D();
@@ -42,6 +43,8 @@ public:
 	Object3D* getParent();
 	void setParent(Object3D* parent);
 	void updateOctreeNode();
+	float getDistanceToCamera();
+	void setDistanceToCamera(float distanceToCamera);
 };
 
 #endif

@@ -90,7 +90,6 @@ void initializeContext(){
 				glEnable(GL_LINE_SMOOTH);
 				glEnable(GL_POLYGON_SMOOTH);
 				glEnable( GL_PROGRAM_POINT_SIZE);
-				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			}
         }
 	}
@@ -250,7 +249,7 @@ int main(int argc, char** argv){
 	Camera* camera = scene->getCamera();
 	camera->setTarget(new Vec3(0,0,0));
 	Geometry* geom = new Geometry();
-	geom->loadDataFromFile("icosphere.mesh");
+	geom->loadDataFromFile("icosahedron.mesh");
 	TessMaterial* mat = new TessMaterial();
 	mat->getDiffuseColor()->setRGB(0.4,0.1,0.1);
 	sphere = new Mesh(geom,mat);
@@ -266,6 +265,7 @@ int main(int argc, char** argv){
 	scene->addDirectionalLight(light1);
 
 	scene->generateOctree();
+	scene->getOctree()->calculateVisibility(camera);
 	renderer = new Renderer();
 	mainLoop();
 	cleanUp();

@@ -281,7 +281,12 @@ void Renderer::render(Scene * scene){
 			GL_TRUE,
 			mesh->getModelMatrix()->getElements()
 		);
-
+		GLfloat dist = mesh->getDistanceToCamera();
+		glUniform1fv(
+			mesh->getMaterial()->getProgram()->getUniforms()->unifDistanceToCamera,
+			1,
+			&dist
+		);
 		//set material uniforms
 		setMaterialUniforms(mesh->getMaterial());
 		
