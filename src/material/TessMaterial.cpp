@@ -10,17 +10,10 @@ TessMaterial::TessMaterial():Material(){
 		in vec3 position;\n\
 		out vec4 vNormal;\n\
 		out vec4 vPos;\n\
-		layout(std140) uniform globalMatrices{\n\
-			mat4 worldMatrix;\n\
-			mat4 projectionMatrix;\n\
-		};\n\
 		uniform mat4 modelMatrix;\n\
 		void main(){\n\
-			vec4 pos = vec4(position,1.0);\n\
-			vec4 modelSpace = modelMatrix * pos;\n\
-			vec4 worldSpace = worldMatrix * modelSpace;\n\
-			vPos = worldSpace;\n\
-			vNormal = normalize(worldMatrix * modelMatrix * vec4(normal,0.0));\n\
+			vPos = vec4(position,1.0);;\n\
+			vNormal = vec4(normal,0.0);\n\
 		}");
 	this->tessControlShaderSource = strdup(
 		"#version 410 core\n\
@@ -37,21 +30,21 @@ TessMaterial::TessMaterial():Material(){
 			tcPos[ID] = vPos[ID];\n\
 			tcNormal[ID] = vNormal[ID];\n\
 			if(ID ==0){\n\
-				gl_TessLevelInner[0] = 1;\n\
-				gl_TessLevelOuter[0] = 2;\n\
-				gl_TessLevelOuter[1] = 2;\n\
-				gl_TessLevelOuter[2] = 2;\n\
+				gl_TessLevelInner[0] = 3;\n\
+				gl_TessLevelOuter[0] = 3;\n\
+				gl_TessLevelOuter[1] = 3;\n\
+				gl_TessLevelOuter[2] = 3;\n\
 			}\n\
 		}\n\
 		");
 	this->tessEvaluationShaderSource= strdup(
-		"#version 410 core\n\
-		#extension GL_ARB_tessellation_shader : require\n\
-		layout(triangles, equal_spacing, ccw) in;\n\
+		"#version 410\n\
+		layout(triangles, equal_spacing, cw) in;\n\
 		in vec4 tcPos[];\n\
 		in vec4 tcNormal[];\n\
 		out vec4 tePos;\n\
 		out vec4 teNormal;\n\
+		uniform mat4 modelMatrix;\n\
 		layout(std140) uniform globalMatrices{\n\
 			mat4 worldMatrix;\n\
 			mat4 projectionMatrix;\n\
@@ -65,8 +58,9 @@ TessMaterial::TessMaterial():Material(){
 			vec4 n1 = gl_TessCoord.y * tcNormal[1];\n\
 			vec4 n2 = gl_TessCoord.z * tcNormal[2];\n\
 			tePos = normalize(p0+p1+p2);\n\
-			teNormal = normalize(n0+n1+n2);\n\
-			gl_Position = projectionMatrix * tePos;\n\
+			vec4 n = normalize(n0+n1+n2);\n\
+			teNormal = worldMatrix * modelMatrix * n;\n\
+			gl_Position = projectionMatrix * worldMatrix * modelMatrix * tePos;\n\
 		}");
     this->fragmentShaderSource=strdup(
     	"#version 410\n\
