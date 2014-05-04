@@ -39,12 +39,12 @@ void initializeContext(){
 		printf("SDL could not initialize! SDL_Error: %s\n",SDL_GetError());
 	}
 	else{
-		SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
-		SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 2 );
+		SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 4 );
+		SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 4 );
 		SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
-		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 		window = SDL_CreateWindow(
 			"Molecule",
 			SDL_WINDOWPOS_UNDEFINED,
@@ -67,8 +67,9 @@ void initializeContext(){
 				{
 					fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
 				}
-				if(!GLEW_VERSION_4_0){
-					fprintf(stderr,"OpenGL 4.0 not available\n");
+
+				if(!GLEW_VERSION_4_4){
+					fprintf(stderr,"OpenGL 4.4 not available\n");
 					exit(-1);
 				}
 				const unsigned char* version = glGetString(GL_VERSION);
@@ -87,6 +88,7 @@ void initializeContext(){
 				glEnable(GL_LINE_SMOOTH);
 				glEnable(GL_POLYGON_SMOOTH);
 				glEnable( GL_PROGRAM_POINT_SIZE);
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			}
         }
 	}

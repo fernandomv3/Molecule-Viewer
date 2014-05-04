@@ -4,13 +4,14 @@
 #include "material/LineMaterial.h"
 #include <string.h>
 #include <cassert>
+#include <cstdio>
 
 float OctreeNode::threshold =0.1;
 
 OctreeNode::OctreeNode(){
 	this->parent = NULL;
 	this->size = 40;
-	this->visible = false;
+	this->visible = true;
 	this->boundingBox = NULL;
 	this->position = NULL;
 	this->level= 0;
@@ -19,7 +20,7 @@ OctreeNode::OctreeNode(){
 OctreeNode::OctreeNode(Vec3* position, float size){
 	this->parent = NULL;
 	this->size = size;
-	this->visible = false;
+	this->visible = true;
 	this->boundingBox = NULL;
 	this->position = position;
 	this->level =0;

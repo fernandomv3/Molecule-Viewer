@@ -209,7 +209,7 @@ Vec3* Molecule::getBondPos(Vec3* atomPos1, Vec3* atomPos2){
 void Molecule::calculateConnections(int num){
 	Geometry* geom = new Geometry();
 	geom->loadDataFromFile("cylinder.mesh");
-	Material* mat = new PhongMaterial();
+	Material* mat = new TessMaterial();
 	mat->getDiffuseColor()->setRGB(0.5,0.5,0.5);
 	mat->setShininess(1000); 
 
