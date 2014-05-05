@@ -13,6 +13,7 @@ Object3D::Object3D(){
 	this->rotation->quaternion = this->quaternion;
 	this->quaternion->euler=this->rotation;
 	this->parent = NULL;
+	this->distanceToCamera = 1;
 	//this->quaternion->setFromEuler(this->rotation,false);
 }
 
@@ -148,4 +149,12 @@ void Object3D::updateOctreeNode(){
 	for(;it != end;it++){
 		(*it)->updateOctreeNode();
 	}
+}
+
+float Object3D::getDistanceToCamera(){
+	return this->distanceToCamera;
+}
+
+void Object3D::setDistanceToCamera(float distanceToCamera){
+	this->distanceToCamera = distanceToCamera;
 }

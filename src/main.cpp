@@ -14,7 +14,6 @@
 #include "scene/Scene.h"
 #include "render/Renderer.h"
 #include "material/PhongMaterial.h"
-#include "material/TessMaterial.h"
 #include "Molecule.h"
 #include "math/SphericalCoord.h"
 
@@ -22,11 +21,10 @@
 #define EPS 0.000001
 #define MAXANG PI
 #define MINANG 0
-#define NUM_SPHERES 64
 
 Renderer* renderer;
 Scene* scene;
-Mesh* sphere;
+Molecule* mol;
 DirectionalLight* light1;
 
 const int SCREEN_WIDTH = 1280;
@@ -97,8 +95,8 @@ void initializeContext(){
 }
 
 void updateLightSphericalPosition(float deltaPhi, float deltaTheta){
-	Vec3* origin = new Vec3(0,0,0);
-	SphericalCoord* sphCoord = new SphericalCoord(light1->getPosition(),origin);
+	Vec3* molPos = new Vec3(mol->getX(),mol->getY(),mol->getZ());
+	SphericalCoord* sphCoord = new SphericalCoord(light1->getPosition(),molPos);
 	sphCoord->setR(10);
 	float phi = sphCoord->getPhi() + deltaPhi;
 	float theta = sphCoord->getTheta() + deltaTheta;
@@ -106,19 +104,19 @@ void updateLightSphericalPosition(float deltaPhi, float deltaTheta){
 	phi = fmax( EPS, fmin( PI - EPS, phi ));
 	sphCoord->setPhi(phi);
 	sphCoord->setTheta(theta);
-	Vec3* newPos = sphCoord->getCartesian(origin);
+	Vec3* newPos = sphCoord->getCartesian(molPos);
 	light1->getPosition()->setX(newPos->getX());
 	light1->getPosition()->setY(newPos->getY());
 	light1->getPosition()->setZ(newPos->getZ());
 	delete sphCoord;
-	delete origin;
+	delete molPos;
 	delete newPos;
 }
 
 //move this function as a method of Object3D
 void updateCamSphericalPosition(float deltaPhi, float deltaTheta, float radiusFactor){
 	Camera* camera = scene->getCamera();
-	Vec3* molPos = new Vec3(0,0,0);
+	Vec3* molPos = new Vec3(mol->getX(),mol->getY(),mol->getZ());
 	SphericalCoord* sphCoord = new SphericalCoord(camera->getPosition(),molPos);
 	float r = sphCoord->getR()*radiusFactor;
 	r = fmax(0.2,fmin(99.0,r));
@@ -146,7 +144,7 @@ bool handleEvents(){
 			case SDL_KEYDOWN:
 				switch(event.key.keysym.sym){
 					case SDLK_SPACE:
-						//mol->toggleSpaceFill();
+						mol->toggleSpaceFill();
 						break;
 					case SDLK_w:
 						updateLightSphericalPosition(-0.2,0);
@@ -161,38 +159,38 @@ bool handleEvents(){
 						updateLightSphericalPosition(0,0.2);
 						break;
 					case SDLK_l:
-						sphere->getPosition()->setX(sphere->getPosition()->getX() + 2);
-						//sphere->updateOctreeNode();
-						//scene->getOctree()->generateTreeMesh();
+						mol->getPosition()->setX(mol->getPosition()->getX() + 0.5);
+						mol->updateOctreeNode();
+						scene->getOctree()->generateTreeMesh();
 						break;
 					case SDLK_j:
-						sphere->getPosition()->setX(sphere->getPosition()->getX() - 2);
-						//sphere->updateOctreeNode();
-						//scene->getOctree()->generateTreeMesh();
+						mol->getPosition()->setX(mol->getPosition()->getX() - 0.5);
+						mol->updateOctreeNode();
+						scene->getOctree()->generateTreeMesh();
 						break;
 					case SDLK_i:
-						sphere->getPosition()->setY(sphere->getPosition()->getY() + 2);
-						//sphere->updateOctreeNode();
-						//scene->getOctree()->generateTreeMesh();
+						mol->getPosition()->setY(mol->getPosition()->getY() + 0.5);
+						mol->updateOctreeNode();
+						scene->getOctree()->generateTreeMesh();
 						break;
 					case SDLK_k:
-						sphere->getPosition()->setY(sphere->getPosition()->getY() - 2);
-						//sphere->updateOctreeNode();
-						//scene->getOctree()->generateTreeMesh();
+						mol->getPosition()->setY(mol->getPosition()->getY() - 0.5);
+						mol->updateOctreeNode();
+						scene->getOctree()->generateTreeMesh();
 						break;
 					case SDLK_u:
-						sphere->getPosition()->setZ(sphere->getPosition()->getZ() + 2);
-						//sphere->updateOctreeNode();
-						//scene->getOctree()->generateTreeMesh();
+						mol->getPosition()->setZ(mol->getPosition()->getZ() + 0.5);
+						mol->updateOctreeNode();
+						scene->getOctree()->generateTreeMesh();
 						break;
 					case SDLK_o:
-						sphere->getPosition()->setZ(sphere->getPosition()->getZ() - 2);
-						//sphere->updateOctreeNode();
-						//scene->getOctree()->generateTreeMesh();
+						mol->getPosition()->setZ(mol->getPosition()->getZ() - 0.5);
+						mol->updateOctreeNode();
+						scene->getOctree()->generateTreeMesh();
 						break;
 					case SDLK_p:
 						printf("printing tree!\n");
-						//scene->getOctree()->print();
+						scene->getOctree()->print();
 						break;
 				}
 				break;
@@ -247,24 +245,22 @@ int main(int argc, char** argv){
 	/*int c;
 	scanf("%d",&c);*/
 	scene = new Scene();
+	mol = new Molecule("dna.pdb");
+	mol->addToScene(scene);
 	Camera* camera = scene->getCamera();
-	camera->setTarget(new Vec3(0,0,0));
-	Geometry* geom = new Geometry();
-	geom->loadDataFromFile("icosphere.mesh");
-	TessMaterial* mat = new TessMaterial();
-	mat->getDiffuseColor()->setRGB(0.4,0.1,0.1);
-	sphere = new Mesh(geom,mat);
-	sphere->getPosition()->setX(1.0);
-	sphere->getPosition()->setY(1.0);
-	sphere->getPosition()->setZ(1.0);
-	scene->addObject((Object3D*)sphere);
+	camera->setTarget(new Vec3(mol->getX(),mol->getY(),mol->getZ()));
 	light1 = new DirectionalLight();
 	light1->getPosition()->setX(2.0);
 	light1->getPosition()->setY(4.0);
 	light1->getPosition()->setZ(5.0);
 	light1->getColor()->setRGB(1,1,1);
 	scene->addDirectionalLight(light1);
-
+	scene->getOctree()->getPosition()->setX(mol->getX());
+	scene->getOctree()->getPosition()->setY(mol->getY());
+	scene->getOctree()->getPosition()->setZ(mol->getZ());
+	/*mol->getPosition()->setX(5);
+	mol->getPosition()->setY(5);
+	mol->getPosition()->setZ(3);*/
 	scene->generateOctree();
 	renderer = new Renderer();
 	mainLoop();

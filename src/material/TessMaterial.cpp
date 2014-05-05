@@ -8,21 +8,21 @@ TessMaterial::TessMaterial():Material(){
 		"#version 410\n\
 		in vec3 normal;\n\
 		in vec3 position;\n\
-		out vec4 vNormal;\n\
-		out vec4 vPos;\n\
+		out vec3 vNormal;\n\
+		out vec3 vPos;\n\
 		uniform mat4 modelMatrix;\n\
 		void main(){\n\
-			vPos = vec4(position,1.0);;\n\
-			vNormal = vec4(normal,0.0);\n\
+			vPos = position;\n\
+			vNormal = normal;\n\
 		}");
 	this->tessControlShaderSource = strdup(
-		"#version 410 core\n\
-		#extension GL_ARB_tessellation_shader : require\n\
+		"#version 410\n\
 		layout(vertices = 3) out;\n\
-		in vec4 vNormal[];\n\
-		in vec4 vPos[];\n\
-		out vec4 tcPos[];\n\
-		out vec4 tcNormal[];\n\
+		in vec3 vNormal[];\n\
+		in vec3 vPos[];\n\
+		out vec3 tcPos[];\n\
+		out vec3 tcNormal[];\n\
+		uniform float distanceToCamera;\n\
 		\n\
 		#define ID gl_InvocationID\n\
 		\n\
@@ -30,18 +30,36 @@ TessMaterial::TessMaterial():Material(){
 			tcPos[ID] = vPos[ID];\n\
 			tcNormal[ID] = vNormal[ID];\n\
 			if(ID ==0){\n\
-				gl_TessLevelInner[0] = 3;\n\
-				gl_TessLevelOuter[0] = 3;\n\
-				gl_TessLevelOuter[1] = 3;\n\
-				gl_TessLevelOuter[2] = 3;\n\
+				int inner = 1;\n\
+				int outer = 1;\n\
+				if(distanceToCamera > 80){\n\
+					inner= 1;\n\
+					outer =1;\n\
+				} else if (distanceToCamera > 65){\n\
+					inner = 1;\n\
+					outer = 2;\n\
+				} else if (distanceToCamera > 30){\n\
+					inner=2;\n\
+					outer=2;\n\
+				} else if (distanceToCamera > 10){\n\
+					inner=3;\n\
+					outer=3;\n\
+				} else if (distanceToCamera > 0){\n\
+					inner=4;\n\
+					outer=4;\n\
+				}\n\
+				gl_TessLevelInner[0] = inner;\n\
+				gl_TessLevelOuter[0] = outer;\n\
+				gl_TessLevelOuter[1] = outer;\n\
+				gl_TessLevelOuter[2] = outer;\n\
 			}\n\
 		}\n\
 		");
 	this->tessEvaluationShaderSource= strdup(
 		"#version 410\n\
-		layout(triangles, equal_spacing, cw) in;\n\
-		in vec4 tcPos[];\n\
-		in vec4 tcNormal[];\n\
+		layout(triangles, equal_spacing, ccw) in;\n\
+		in vec3 tcPos[];\n\
+		in vec3 tcNormal[];\n\
 		out vec4 tePos;\n\
 		out vec4 teNormal;\n\
 		uniform mat4 modelMatrix;\n\
@@ -50,16 +68,16 @@ TessMaterial::TessMaterial():Material(){
 			mat4 projectionMatrix;\n\
 		};\n\
 		void main(){\n\
-			vec4 p0 = gl_TessCoord.x * tcPos[0];\n\
-			vec4 p1 = gl_TessCoord.y * tcPos[1];\n\
-			vec4 p2 = gl_TessCoord.z * tcPos[2];\n\
+			vec3 p0 = gl_TessCoord.x * tcPos[0];\n\
+			vec3 p1 = gl_TessCoord.y * tcPos[1];\n\
+			vec3 p2 = gl_TessCoord.z * tcPos[2];\n\
 			\n\
-			vec4 n0 = gl_TessCoord.x * tcNormal[0];\n\
-			vec4 n1 = gl_TessCoord.y * tcNormal[1];\n\
-			vec4 n2 = gl_TessCoord.z * tcNormal[2];\n\
-			tePos = normalize(p0+p1+p2);\n\
-			vec4 n = normalize(n0+n1+n2);\n\
-			teNormal = worldMatrix * modelMatrix * n;\n\
+			vec3 n0 = gl_TessCoord.x * tcNormal[0];\n\
+			vec3 n1 = gl_TessCoord.y * tcNormal[1];\n\
+			vec3 n2 = gl_TessCoord.z * tcNormal[2];\n\
+			tePos = vec4(normalize(p0+p1+p2),1.0);\n\
+			vec3 n = normalize(n0+n1+n2);\n\
+			teNormal = worldMatrix * modelMatrix * vec4(n,0.0);\n\
 			gl_Position = projectionMatrix * worldMatrix * modelMatrix * tePos;\n\
 		}");
     this->fragmentShaderSource=strdup(
@@ -164,6 +182,7 @@ TessMaterial::TessMaterial():Material(){
 	this->program->getUniforms()->unifDiffuseColor = glGetUniformLocation(prog,"material.diffuseColor");
 	this->program->getUniforms()->unifSpecularColor = glGetUniformLocation(prog,"material.specularColor");
 	this->program->getUniforms()->unifShininess = glGetUniformLocation(prog,"material.shininess");
+	this->program->getUniforms()->unifDistanceToCamera = glGetUniformLocation(prog,"distanceToCamera");
 	this->program->getUniforms()->unifBlockMatrices = glGetUniformBlockIndex(prog,"globalMatrices");
 	glUniformBlockBinding(prog, this->program->getUniforms()->unifBlockMatrices,0);
 	this->program->getUniforms()->unifBlockDirectionalLights = glGetUniformBlockIndex(prog,"directionalLights");

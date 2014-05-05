@@ -53,6 +53,7 @@ public:
 	void generateTreeMesh();
 	void print();
 	int objectsInBranch();
+	void calculateObjectsDistanceToCamera(Camera* camera);
 };
 
 

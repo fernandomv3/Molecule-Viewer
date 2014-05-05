@@ -130,9 +130,21 @@ void OctreeNode::calculateVisibility(Camera* camera){
 		}
 		delete bounds;
 	}
+	if(this->visible){
+		this->calculateObjectsDistanceToCamera(camera);
+	}
 	OctreeNodeIterator node = this->children.begin();
 	for(; node != this->children.end(); node++){
 		(*node)->calculateVisibility(camera);
+	}
+}
+
+void OctreeNode::calculateObjectsDistanceToCamera(Camera* camera){
+	Object3DIterator it;
+	for(it = this->objects.begin(); it != this->objects.end(); it++){
+		Vec3* distVec = Vec3::subVectors(camera->getPosition(),(*it)->getPosition());
+		(*it)->setDistanceToCamera(fabs(distVec->length()));
+		delete distVec;
 	}
 }
 
