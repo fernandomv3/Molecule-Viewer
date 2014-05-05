@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 GouraudMaterial::GouraudMaterial():Material(){
+	this->type = GOURAUD_MATERIAL;
 	this->vertexShaderSource= strdup(
 		"#version 410\n\
 		#define MAX_DIR_LIGHTS 10\n\

@@ -9,6 +9,7 @@ Material::Material(){
 	this->vertexShaderSource = NULL;
 	this->fragmentShaderSource = NULL;
 	this->program = NULL;
+
 }
 
 GLProgram* Material::getProgram(){
@@ -90,3 +91,6 @@ Material::~Material(){
 	}	
 }
 
+MaterialType Material::getType(){
+	return this->type;
+}

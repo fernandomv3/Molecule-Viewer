@@ -68,7 +68,7 @@ void Molecule::readPDB(const char* filename){
 		AtomMaterialPool* matPool = AtomMaterialPool::getInstance();
 		AtomRadiusTable* radiusTable = AtomRadiusTable::getInstance();
 		Geometry* atomGeometry = new Geometry();
-	    atomGeometry->loadDataFromFile("icosphere.mesh");
+	    atomGeometry->loadDataFromFile("icosahedron.mesh");
 	    while (!pdbFile.eof()){
 	      pdbFile.getline(line,81);
 	      if(strlen(line) == 80){
@@ -209,7 +209,7 @@ Vec3* Molecule::getBondPos(Vec3* atomPos1, Vec3* atomPos2){
 void Molecule::calculateConnections(int num){
 	Geometry* geom = new Geometry();
 	geom->loadDataFromFile("cylinder.mesh");
-	Material* mat = new TessMaterial();
+	Material* mat = new PhongMaterial();
 	mat->getDiffuseColor()->setRGB(0.5,0.5,0.5);
 	mat->setShininess(1000); 
 

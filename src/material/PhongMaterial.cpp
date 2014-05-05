@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 PhongMaterial::PhongMaterial():Material(){
+	this->type = PHONG_MATERIAL;
 	this->vertexShaderSource= strdup(
 		"#version 410\n\
 		in vec3 normal;\n\

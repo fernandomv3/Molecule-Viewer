@@ -7,6 +7,8 @@
 //future adds -> opacity, bumpmaps, textures, normal maps
 //future -> make material memory self managed
 
+enum MaterialType {BASIC_MATERIAL,GOURAUD_MATERIAL,PHONG_MATERIAL,TESS_MATERIAL,CEL_MATERIAL,POINT_MATERIAL,LINE_MATERIAL};
+
 struct materialStruct{
 	GLfloat diffuseColor[4];
 	GLfloat specularColor[4];
@@ -24,6 +26,7 @@ protected:
 	GLchar* vertexShaderSource;
 	GLchar* fragmentShaderSource;
 	GLProgram* program;
+	MaterialType type;
 public:
 	Material();
 	virtual ~Material();
@@ -40,5 +43,6 @@ public:
 	void setShininess(GLfloat shininess);
 	GLfloat getShininess();
 	MaterialStruct getAsStruct();
+	MaterialType getType();
 };
 #endif

@@ -2,6 +2,7 @@
 #include <string.h>
 
 PointMaterial::PointMaterial():Material(){
+	this->type = POINT_MATERIAL;
 	this->vertexShaderSource= strdup(
 		"#version 410\n\
 		in vec3 position;\n\

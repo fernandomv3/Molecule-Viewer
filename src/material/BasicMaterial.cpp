@@ -2,6 +2,7 @@
 #include <string.h>
  
 BasicMaterial::BasicMaterial():Material(){
+    this->type = BASIC_MATERIAL;
     this->vertexShaderSource= strdup(
         "#version 410\n\
         #define MAX_DIR_LIGHTS 10\n\

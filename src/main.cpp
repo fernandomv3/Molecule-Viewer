@@ -88,7 +88,7 @@ void initializeContext(){
 				glEnable(GL_LINE_SMOOTH);
 				glEnable(GL_POLYGON_SMOOTH);
 				glEnable( GL_PROGRAM_POINT_SIZE);
-				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+				//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			}
         }
 	}

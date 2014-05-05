@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 CelMaterial::CelMaterial():Material(){
+	this->type = CEL_MATERIAL;
 	this->vertexShaderSource= strdup(
 		"#version 410\n\
 		struct Material{\n\

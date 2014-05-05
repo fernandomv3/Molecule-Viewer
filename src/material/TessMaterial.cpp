@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 TessMaterial::TessMaterial():Material(){
+	this->type = TESS_MATERIAL;
 	this->vertexShaderSource= strdup(
 		"#version 410\n\
 		in vec3 normal;\n\

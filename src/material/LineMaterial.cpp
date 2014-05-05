@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 LineMaterial::LineMaterial():Material(){
+	this->type = LINE_MATERIAL;
 	this->vertexShaderSource= strdup(
 		"#version 410\n\
 		struct Material{\n\
