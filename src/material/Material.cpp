@@ -1,5 +1,6 @@
 #include "material/Material.h"
 #include <cstdlib>
+#include <cstdio>
 #include <string.h>
 using namespace std;
 
@@ -96,6 +97,13 @@ MaterialType Material::getType(){
 	return this->type;
 }
 
-void* Material::configureSource(char* source,int numDirLight, int numPointLights){
+char* Material::configureSource(char* source,int numDirLights, int numPointLights){
+	char src[strlen(source)+100];
+	sprintf(src,source,numDirLights,numPointLights);
+	delete source;
+	return strdup(src);
+}
 
+void Material::makePrograms(int numDirLights, int numPointLights){
+	
 }

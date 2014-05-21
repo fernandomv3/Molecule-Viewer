@@ -26,8 +26,8 @@ PhongMaterial::PhongMaterial():Material(){
 		}");
     this->fragmentShaderSource=strdup(
     	"#version 410\n\
-    	#define MAX_DIR_LIGHTS 10\n\
-		#define MAX_P_LIGHTS 10\n\
+    	#define MAX_DIR_LIGHTS %d\n\
+		#define MAX_P_LIGHTS %d\n\
 		struct DirectionalLight{\n\
 			vec4 color;\n\
 			vec4 vectorToLight;\n\
@@ -109,9 +109,17 @@ PhongMaterial::PhongMaterial():Material(){
 			}\n\
             outputColor = outputColor + (material.diffuseColor * ambientLight);\n\
     	}");
+		this->makePrograms(10,10);
+}
+
+void PhongMaterial::makePrograms(int numDirLights,int numPointLights){
 	this->program = new GLProgram();
-	GLuint vertexShader = this->program->compileShader(GL_VERTEX_SHADER,this->vertexShaderSource);
-	GLuint fragmentShader = this->program->compileShader(GL_FRAGMENT_SHADER,this->fragmentShaderSource);
+	char* vs = this->configureSource(this->vertexShaderSource,numDirLights,numPointLights);
+	char* fs = this->configureSource(this->fragmentShaderSource,numDirLights,numPointLights);
+	GLuint vertexShader = this->program->compileShader(GL_VERTEX_SHADER,vs);
+	GLuint fragmentShader = this->program->compileShader(GL_FRAGMENT_SHADER,fs);
+	delete vs;
+	delete fs;
 	this->program->setVertexShader(vertexShader);
 	this->program->setFragmentShader(fragmentShader);
 	GLuint prog = this->program->linkProgram(vertexShader,fragmentShader);

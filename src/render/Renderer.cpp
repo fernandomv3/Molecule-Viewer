@@ -170,6 +170,10 @@ void Renderer::calculateGlobalMatrices(Scene* scene){
 }
 
 void Renderer::setMaterialUniforms(Material* material){
+	//compile the program if i'ts not compiled
+	if(material->getProgram() == NULL){
+
+	}
 	//set diffuse color
 	GLfloat* diffuseColor = material->getDiffuseColor()->getAsArray();
 	glUniform4fv(

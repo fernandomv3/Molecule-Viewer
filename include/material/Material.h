@@ -23,6 +23,8 @@ protected:
 	Color* diffuseColor;
 	Color* specularColor;
 	GLfloat shininess;
+	GLchar* vertexShaderSourceTemplate;
+	GLchar* fragmentShaderSourceTemplate;
 	GLchar* vertexShaderSource;
 	GLchar* fragmentShaderSource;
 	GLProgram* program;
@@ -44,6 +46,7 @@ public:
 	GLfloat getShininess();
 	MaterialStruct getAsStruct();
 	MaterialType getType();
-	void* configureSource(char* source,int numDirLight, int numPointLights);
+	char* configureSource(char* source,int numDirLights, int numPointLights);
+	virtual void makePrograms(int numDirLights, int numPointLights);
 };
 #endif
