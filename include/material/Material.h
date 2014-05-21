@@ -44,5 +44,6 @@ public:
 	GLfloat getShininess();
 	MaterialStruct getAsStruct();
 	MaterialType getType();
+	void* configureSource(char* source,int numDirLight, int numPointLights);
 };
 #endif

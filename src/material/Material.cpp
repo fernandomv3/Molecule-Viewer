@@ -1,6 +1,7 @@
 #include "material/Material.h"
 #include <cstdlib>
 #include <string.h>
+using namespace std;
 
 Material::Material(){
 	this->diffuseColor = new Color();
@@ -93,4 +94,8 @@ Material::~Material(){
 
 MaterialType Material::getType(){
 	return this->type;
+}
+
+void* Material::configureSource(char* source,int numDirLight, int numPointLights){
+
 }

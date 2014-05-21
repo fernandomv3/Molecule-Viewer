@@ -93,6 +93,10 @@ GLuint GLProgram::linkProgram(GLuint vertexShader, GLuint fragmentShader){
         glDeleteProgram(program);
         return 0;
     }
+    glDetachShader(program, vertexShader);
+    glDetachShader(program, fragmentShader);
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
     return program;
 }
 
@@ -166,6 +170,14 @@ GLuint GLProgram::linkProgramTessellation(GLuint vertexShader, GLuint fragmentSh
         glDeleteProgram(program);
         return 0;
     }
+    glDetachShader(program, vertexShader);
+    glDetachShader(program, tessControlShader);
+    glDetachShader(program, tessEvaluationShader);
+    glDetachShader(program, fragmentShader);
+    glDeleteShader(vertexShader);
+    glDeleteShader(tessControlShader);
+    glDeleteShader(tessEvaluationShader);
+    glDeleteShader(fragmentShader);
     return program;
 }
 
