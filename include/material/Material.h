@@ -8,6 +8,7 @@
 //future -> make material memory self managed
 
 enum MaterialType {BASIC_MATERIAL,GOURAUD_MATERIAL,PHONG_MATERIAL,TESS_MATERIAL,CEL_MATERIAL,POINT_MATERIAL,LINE_MATERIAL};
+enum {GLOBAL_MATRICES_UBI,DIRLIGHTS_UBI,AMBLIGHT_UBI,PLIGHTS_UBI};
 
 struct materialStruct{
 	GLfloat diffuseColor[4];
