@@ -9,6 +9,8 @@
 #include "light/DirectionalLight.h"
 #include "light/PointLight.h"
 #include "scene/OctreeNode.h"
+#include "object/Geometry.h"
+#include "material/Material.h"
 
 using namespace std;
 
@@ -21,12 +23,16 @@ private:
 	Light * ambientLight;
 	list<DirectionalLight*> directionalLights;
 	list<PointLight*> pointLights;
+	list<Geometry*> geometries;
+	list<Material*> materials;
 	GLuint pointLightsUBO;
 	GLuint directionalLightsUBO;
 	GLuint ambientLightUBO;
 	OctreeNode* octree;
 public:
 	Scene();
+	list<Geometry*> getGeometries();
+	list<Material*> getMaterials();
 	list<Object3D*> getObjects();
 	list<Object3D*> getAddedObjects();
 	list<Object3D*> getRemovedObjects();

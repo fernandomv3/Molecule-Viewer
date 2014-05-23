@@ -42,6 +42,19 @@ void Scene::addObject(Object3D* o){
 		if( it  != this->removedObjects.end()){
 			this->removedObjects.erase(it);
 		}
+
+		Material * mat = ((Mesh*)o)->getMaterial();
+		Geometry * geom = ((Mesh*)o)->getGeometry();
+
+		if(mat->getSceneIndex() == -1){
+			mat->setSceneIndex(this->materials.size());
+			this->materials.push_back(mat);
+		}
+
+		if(geom->getSceneIndex() == -1){
+			geom->setSceneIndex(this->geometries.size());
+			this->geometries.push_back(geom);
+		}
 	}
 }
 
@@ -164,4 +177,12 @@ void Scene::generateOctree(){
 		this->octree->addObject(*it);
 	}
 	this->octree->generateTreeMesh();
+}
+
+list<Geometry*> Scene::getGeometries(){
+	return this->geometries;
+}
+
+list<Material*> Scene::getMaterials(){
+	return this->materials;
 }

@@ -23,6 +23,7 @@ private:
 	GLuint vertexBuffer;
 	GLuint elementBuffer;
 	GLuint normalBuffer;
+	int sceneIndex;
 	BoundingBox boundingBox;
 	~Geometry();
 public:
@@ -49,6 +50,8 @@ public:
 	BoundingBox getBoundingBox();
 	static Geometry* generateCubeGeometry(float size);
 	static Geometry* generateCubeWireframe(float size);
+	int getSceneIndex();
+	void setSceneIndex(int index);
 };
 
 #endif

@@ -11,7 +11,7 @@ Material::Material(){
 	this->vertexShaderSource = NULL;
 	this->fragmentShaderSource = NULL;
 	this->program = NULL;
-
+	this->sceneIndex = -1;
 }
 
 GLProgram* Material::getProgram(){
@@ -96,6 +96,15 @@ Material::~Material(){
 MaterialType Material::getType(){
 	return this->type;
 }
+
+int Material::getSceneIndex(){
+	return this->sceneIndex;
+}
+
+void Material::setSceneIndex(int index){
+	this->sceneIndex = index;
+}
+
 
 char* Material::configureSource(char* source,int numDirLights, int numPointLights){
 	char src[strlen(source)+100];

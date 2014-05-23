@@ -29,6 +29,7 @@ protected:
 	GLchar* vertexShaderSource;
 	GLchar* fragmentShaderSource;
 	GLProgram* program;
+	int sceneIndex;
 	MaterialType type;
 public:
 	Material();
@@ -48,6 +49,8 @@ public:
 	MaterialStruct getAsStruct();
 	MaterialType getType();
 	char* configureSource(char* source,int numDirLights, int numPointLights);
+	int getSceneIndex();
+	void setSceneIndex(int index);
 	virtual void makePrograms(int numDirLights, int numPointLights);
 };
 #endif

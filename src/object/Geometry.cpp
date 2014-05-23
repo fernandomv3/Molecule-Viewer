@@ -16,6 +16,7 @@ Geometry::Geometry(){
 	this->elementBuffer =0;
 	this->normalBuffer =0;
 	this->boundingBox =NULL;
+	this->sceneIndex = -1;
 }
 GLfloat* Geometry::getVertices(){
 	return this->vertices;
@@ -226,4 +227,12 @@ Geometry* Geometry::generateCubeWireframe(float size){
 	boxGeom->setElements(elements,numElements);
 	boxGeom->setNormals(normals,numVertices);
 	return boxGeom;
+}
+
+int Geometry::getSceneIndex(){
+	return this->sceneIndex;
+}
+
+void Geometry::setSceneIndex(int index){
+	this->sceneIndex = index;
 }
