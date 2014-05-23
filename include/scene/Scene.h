@@ -29,6 +29,11 @@ private:
 	GLuint directionalLightsUBO;
 	GLuint ambientLightUBO;
 	OctreeNode* octree;
+	bool objectAdded;
+	bool geometryAdded;
+	bool materialAdded;
+	bool dirLightAdded;
+	bool pLightAdded;
 public:
 	Scene();
 	list<Geometry*> getGeometries();
@@ -54,6 +59,16 @@ public:
 	void setAmbientLightUBO(GLuint ambientLightUBO);
 	OctreeNode* getOctree();
 	void generateOctree();
+	bool getObjectAdded();
+	bool getGeometryAdded();
+	bool getMaterialAdded();
+	bool getDirLightAdded();
+	bool getPLightAdded();
+	bool setObjectAdded(bool objectAdded);
+	bool setGeometryAdded(bool geometryAdded);
+	bool setMaterialAdded(bool materialAdded);
+	bool setDirLightAdded(bool dirLightAdded);
+	bool setPLightAdded(bool pLightAdded);
 	~Scene();
 };
 #endif

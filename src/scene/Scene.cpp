@@ -36,6 +36,7 @@ void Scene::addDirectionalLight(DirectionalLight* light){
 void Scene::addObject(Object3D* o){
 	if(find(this->objects.begin(),this->objects.end(), o) == this->objects.end()){
 		this->objects.push_back(o);
+		this->objectAdded = true;
 		//this->addedObjects.push_back(o);
 
 		list<Object3D*>::iterator it = find(this->removedObjects.begin(),this->removedObjects.end(),o);
@@ -49,11 +50,13 @@ void Scene::addObject(Object3D* o){
 		if(mat->getSceneIndex() == -1){
 			mat->setSceneIndex(this->materials.size());
 			this->materials.push_back(mat);
+			this->materialAdded = true;
 		}
 
 		if(geom->getSceneIndex() == -1){
 			geom->setSceneIndex(this->geometries.size());
 			this->geometries.push_back(geom);
+			this->geometryAdded = true;
 		}
 	}
 }
@@ -114,6 +117,7 @@ list<PointLight*> Scene::getPointLights(){
 
 void Scene::addPointLight(PointLight* pointLight){
 	this->pointLights.push_back(pointLight);
+	this->pLightAdded = true;
 }
 
 GLuint Scene::getPointLightsUBO(){
@@ -185,4 +189,44 @@ list<Geometry*> Scene::getGeometries(){
 
 list<Material*> Scene::getMaterials(){
 	return this->materials;
+}
+
+bool Scene::getObjectAdded(){
+	return this->objectAdded;
+}
+
+bool Scene::getGeometryAdded(){
+	return this->geometryAdded;
+}
+
+bool Scene::getMaterialAdded(){
+	return this->materialAdded;
+}
+
+bool Scene::getDirLightAdded(){
+	return this->dirLightAdded;
+}
+
+bool Scene::getPLightAdded(){
+	return this->pLightAdded;
+}
+
+bool Scene::setObjectAdded(bool objectAdded){
+	this->objectAdded = objectAdded;
+}
+
+bool Scene::setGeometryAdded(bool geometryAdded){
+	this->geometryAdded = geometryAdded;
+}
+
+bool Scene::setMaterialAdded(bool materialAdded){
+	this->materialAdded = materialAdded;
+}
+
+bool Scene::setDirLightAdded(bool dirLightAdded){
+	this->dirLightAdded = dirLightAdded;
+}
+
+bool Scene::setPLightAdded(bool pLightAdded){
+	this->pLightAdded = pLightAdded;
 }
