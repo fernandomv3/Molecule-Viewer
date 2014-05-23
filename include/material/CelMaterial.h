@@ -5,6 +5,7 @@
 class CelMaterial:public Material{
 public:
 	CelMaterial();
+	void makePrograms(int numDirLights, int numPointLights);
 };
 
 #endif

@@ -23,14 +23,14 @@ private:
 	void calculateDirectionalLights(Scene* scene);
 	void calculateAmbientLights(Scene* scene);
 	void calculatePointLights(Scene* scene);
-	void setMaterialUniforms(Material* material);
+	void setMaterialUniforms(Material* material, Scene* scene);
 public:
 	Renderer();
 	void render(Scene* scene);
 	GLuint makeBuffer(GLenum target, void* bufferData, GLsizei bufferSize);
 	GLuint makeUBO(void* bufferData, GLsizei bufferSize);
 	GLuint makePointBuffer(GLenum target, void* bufferData, GLsizei bufferSize);
-	void renderOctreeNode(OctreeNode* node);
+	void renderOctreeNode(OctreeNode* node,Scene* scene);
 };
 
 #endif

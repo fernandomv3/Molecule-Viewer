@@ -50,5 +50,5 @@ LineMaterial::LineMaterial():Material(){
 	this->program->getUniforms()->unifSpecularColor = glGetUniformLocation(prog,"material.specularColor");
 	this->program->getUniforms()->unifShininess = glGetUniformLocation(prog,"material.shininess");
 	this->program->getUniforms()->unifBlockMatrices = glGetUniformBlockIndex(prog,"globalMatrices");
-	glUniformBlockBinding(prog, this->program->getUniforms()->unifBlockMatrices,0);
+	glUniformBlockBinding(prog, this->program->getUniforms()->unifBlockMatrices,GLOBAL_MATRICES_UBI);
 }

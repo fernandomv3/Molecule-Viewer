@@ -37,5 +37,5 @@ PointMaterial::PointMaterial():Material(){
 	this->program->setAttrPosition(glGetAttribLocation(prog, "position"));
 	this->program->getUniforms()->unifDiffuseColor = glGetUniformLocation(prog,"diffuseColor");
 	this->program->getUniforms()->unifBlockMatrices = glGetUniformBlockIndex(prog,"globalMatrices");
-	glUniformBlockBinding(prog, this->program->getUniforms()->unifBlockMatrices,0);
+	glUniformBlockBinding(prog, this->program->getUniforms()->unifBlockMatrices,GLOBAL_MATRICES_UBI);
 }

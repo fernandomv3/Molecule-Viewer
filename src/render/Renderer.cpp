@@ -34,100 +34,65 @@ GLuint Renderer::makePointBuffer(GLenum target, void* bufferData, GLsizei buffer
 }
 
 void Renderer::calculateDirectionalLights(Scene* scene){
-	int bufferSize = sizeof(struct dirLightsChunk);
+	GLint numLights = scene->getDirectionalLights().size();
+	if(numLights == 0) return;
+	int bufferSize = sizeof(struct dirLight) * numLights;
 	if(scene->getDirectionalLightsUBO() == 0){
 		GLuint buf = makeUBO(NULL, bufferSize);
 		scene->setDirectionalLightsUBO(buf);
 		glBindBufferRange(
 			GL_UNIFORM_BUFFER,//target
-			1,//binding point
+			DIRLIGHTS_UBI,//binding point
 			buf,//data
 			0,//offset
 			bufferSize//size in bytes
 		);
 	}
-	GLint numLights = scene->getDirectionalLights().size();
-	list<DirectionalLight*> lights = scene->getDirectionalLights();
-	list<DirectionalLight*>::iterator itLights = lights.begin();
-	list<DirectionalLight*>::iterator endLights = lights.end();
-	struct dirLightsChunk chunk;
-	chunk.numDirLights = numLights;
+	
+	list<DirectionalLight*> lightsList = scene->getDirectionalLights();
+	list<DirectionalLight*>::iterator itLights = lightsList.begin();
+	list<DirectionalLight*>::iterator endLights = lightsList.end();
+	struct dirLight lights[numLights];
 	for(int i=0;itLights != endLights && i<10 ;itLights++ , i++){
 		DirLight light = (*itLights)->getAsStruct(scene->getCamera());
-		memcpy(&(chunk.lights[i]),light,sizeof(struct dirLight));
+		lights[i]= *light;
 		delete light;
 	}
 
 	glBindBuffer(GL_UNIFORM_BUFFER,scene->getDirectionalLightsUBO());
-	glBufferSubData(GL_UNIFORM_BUFFER,0,bufferSize,&chunk);
+	glBufferSubData(GL_UNIFORM_BUFFER,0,bufferSize,&lights);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void Renderer::calculatePointLights(Scene* scene){
-	//static GLuint bufPoint =0;
-	int bufferSize = sizeof(struct pLightsChunk);
+	GLint numLights = scene->getPointLights().size();
+	if(numLights == 0) return;
+	int bufferSize = sizeof(struct pLight)*numLights;
 	if(scene->getPointLightsUBO() == 0){
 		GLuint buf = makeUBO(NULL, bufferSize);
 		scene->setPointLightsUBO(buf);
 		glBindBufferRange(
 			GL_UNIFORM_BUFFER,//target
-			3,//binding point
+			PLIGHTS_UBI,//binding point
 			buf,//data
 			0,//offset
 			bufferSize//size in bytes
 		);
 	}
-	GLint numLights = scene->getPointLights().size();
-	list<PointLight*> lights = scene->getPointLights();
-	list<PointLight*>::iterator itLights = lights.begin();
-	list<PointLight*>::iterator endLights = lights.end();
-	struct pLightsChunk chunk;
-	chunk.numPLights = numLights;
-
-	/*PointMaterial pMat = PointMaterial();
-	pMat.getDiffuseColor()->setRGB(0.0,0.0,0.0);
-	if(bufPoint == 0){
-		bufPoint = this->makePointBuffer(
-			GL_ARRAY_BUFFER,
-			NULL,
-			3 * sizeof(GLfloat)
-		);
-	}
-	glBindBuffer(GL_ARRAY_BUFFER,bufPoint);
-	glVertexAttribPointer(
-		pMat.getProgram()->getAttrPosition(),//attribute from prgram(position)
-		3,//number of components per vertex
-		GL_FLOAT,//type of data
-		GL_FALSE,//normalized
-		0,//separation between 2 values
-		(void*)0 //offset
-	);
-	glEnableVertexAttribArray(pMat.getProgram()->getAttrPosition());
-	glUseProgram(pMat.getProgram()->getProgram());
-	GLfloat* diffuseColor = pMat.getDiffuseColor()->getAsArray();
-	glUniform4fv(
-		pMat.getProgram()->getUniforms()->unifDiffuseColor,
-		1,
-		diffuseColor
-	);
-	delete diffuseColor;
-	GLfloat pos[3];*/
+	
+	list<PointLight*> lightsList = scene->getPointLights();
+	list<PointLight*>::iterator itLights = lightsList.begin();
+	list<PointLight*>::iterator endLights = lightsList.end();
+	struct pLight lights[numLights];
 
 	for(int i=0;itLights != endLights && i<10 ;itLights++ , i++){
 		PLight light = (*itLights)->getAsStruct(scene->getCamera());
-		memcpy(&(chunk.lights[i]),light,sizeof(struct pLight));
+		lights[i] = *light;
 		delete light;
-		/*pos[0] = (*itLights)->getPosition()->getX();
-		pos[1] = (*itLights)->getPosition()->getY();
-		pos[2] = (*itLights)->getPosition()->getZ();
-		glBufferSubData(GL_ARRAY_BUFFER,0,sizeof(GLfloat)*3,&pos);
-		glDrawArrays(GL_POINTS,0,1);*/
 	}
-	/*glDisableVertexAttribArray(pMat.getProgram()->getAttrPosition());
-	delete pMat;
-	delete[] pos;*/
+
 	glBindBuffer(GL_UNIFORM_BUFFER,scene->getPointLightsUBO());
-	glBufferSubData(GL_UNIFORM_BUFFER,0,bufferSize,&chunk);
+	glBufferSubData(GL_UNIFORM_BUFFER,0,bufferSize,&lights);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
@@ -138,7 +103,7 @@ void Renderer::calculateAmbientLights(Scene* scene){
 		scene->setAmbientLightUBO(buf);
 		glBindBufferRange(
 			GL_UNIFORM_BUFFER,//target
-			2,//binding point
+			AMBLIGHT_UBI,//binding point
 			buf,//data
 			0,//offset
 			sizeof(GLfloat) * 4//size in bytes
@@ -156,7 +121,7 @@ void Renderer::calculateGlobalMatrices(Scene* scene){
 		scene->getCamera()->setMatricesUBO(buf);
 		glBindBufferRange(
 			GL_UNIFORM_BUFFER,//target
-			0,//binding point
+			GLOBAL_MATRICES_UBI,//binding point
 			buf,//data
 			0,//offset
 			sizeof(GLfloat) * 32//size in bytes
@@ -169,11 +134,8 @@ void Renderer::calculateGlobalMatrices(Scene* scene){
 	delete[] data;
 }
 
-void Renderer::setMaterialUniforms(Material* material){
-	//compile the program if i'ts not compiled
-	if(material->getProgram() == NULL){
-
-	}
+void Renderer::setMaterialUniforms(Material* material,Scene* scene){
+	
 	//set diffuse color
 	GLfloat* diffuseColor = material->getDiffuseColor()->getAsArray();
 	glUniform4fv(
@@ -249,6 +211,11 @@ void Renderer::render(Scene * scene){
 							);
             mesh->getGeometry()->setNormalBuffer(buf);
 		}
+
+		//compile the program if i'ts not compiled
+		if(mesh->getMaterial()->getProgram() == NULL){
+			mesh->getMaterial()->makePrograms(scene->getDirectionalLights().size(),scene->getPointLights().size());
+		}
 		//set vertex attribute
 		glBindBuffer(GL_ARRAY_BUFFER,mesh->getGeometry()->getVertexBuffer());
 		glVertexAttribPointer(
@@ -292,7 +259,7 @@ void Renderer::render(Scene * scene){
 			&dist
 		);
 		//set material uniforms
-		setMaterialUniforms(mesh->getMaterial());
+		setMaterialUniforms(mesh->getMaterial(),scene);
 		
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,mesh->getGeometry()->getElementBuffer());
 		if(mesh->getMaterial()->getType() == TESS_MATERIAL){
@@ -318,7 +285,7 @@ void Renderer::render(Scene * scene){
 	//this->renderOctreeNode(scene->getOctree());
 }
 
-void Renderer::renderOctreeNode(OctreeNode* node){
+void Renderer::renderOctreeNode(OctreeNode* node, Scene* scene){
 
 	Mesh* mesh = node->getBoundingBox();
 	if(mesh->getGeometry()->getVertexBuffer() == 0 && mesh->getGeometry()->getVertices() != NULL){
@@ -383,7 +350,7 @@ void Renderer::renderOctreeNode(OctreeNode* node){
 	);
 
 	//set material uniforms
-	setMaterialUniforms(mesh->getMaterial());
+	setMaterialUniforms(mesh->getMaterial(),scene);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,mesh->getGeometry()->getElementBuffer());
 	glDrawElements(
 		GL_LINES, //drawing mode
@@ -396,6 +363,6 @@ void Renderer::renderOctreeNode(OctreeNode* node){
 	OctreeNodeIterator it = node->children.begin();
 	OctreeNodeIterator end = node->children.end();
 	for(;it != end;it++){
-		renderOctreeNode((*it));
+		renderOctreeNode((*it),scene);
 	}
 }

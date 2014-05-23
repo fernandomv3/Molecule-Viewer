@@ -83,20 +83,24 @@ TessMaterial::TessMaterial():Material(){
 		}");
     this->fragmentShaderSource=strdup(
     	"#version 410\n\
-    	#define MAX_DIR_LIGHTS 10\n\
-		#define MAX_P_LIGHTS 10\n\
+    	#define MAX_DIR_LIGHTS %d\n\
+		#define MAX_P_LIGHTS %d\n\
+		#if MAX_DIR_LIGHTS > 0\n\
 		struct DirectionalLight{\n\
 			vec4 color;\n\
 			vec4 vectorToLight;\n\
 			float intensity;\n\
 		};\n\
+		#endif\n\
 		\n\
+		#if MAX_P_LIGHTS > 0\n\
 		struct PointLight{\n\
 			vec4 color;\n\
 			vec4 position;\n\
 			float intensity;\n\
 			float attenuation;\n\
 		};\n\
+		#endif\n\
 		\n\
 		struct Material{\n\
 			vec4 diffuseColor;\n\
@@ -104,14 +108,16 @@ TessMaterial::TessMaterial():Material(){
 			float shininess;\n\
 		};\n\
 		\n\
+		#if MAX_DIR_LIGHTS > 0\n\
 		layout(std140) uniform directionalLights{\n\
 			DirectionalLight dirLights[MAX_DIR_LIGHTS];\n\
-			int numDirLights;\n\
 		};\n\
+		#endif\n\
+		#if MAX_P_LIGHTS > 0\n\
 		layout(std140) uniform pointLights{\n\
 			PointLight pLights[MAX_P_LIGHTS];\n\
-			int numPointLights;\n\
 		};\n\
+		#endif\n\
 		layout(std140) uniform ambLight{\n\
 			vec4 ambientLight;\n\
 		};\n\
@@ -120,11 +126,13 @@ TessMaterial::TessMaterial():Material(){
     	in vec4 teNormal;\n\
 		in vec4 tePos;\n\
     	out vec4 outputColor;\n\
+    	#if MAX_P_LIGHTS > 0\n\
     	vec4 attenuateLight(in vec4 color, in float attenuation, in vec4 vectorToLight){\n\
 			float distSqr = dot(vectorToLight,vectorToLight);\n\
 			vec4 attenLightIntensity = color * (1/(1.0 + attenuation * sqrt(distSqr)));\n\
 			return attenLightIntensity;\n\
     	}\n\
+    	#endif\n\
     	\n\
     	float warp (in float value,in float factor){\n\
     		return (value + factor ) / (1+ clamp(factor,0,1));\n\
@@ -144,7 +152,8 @@ TessMaterial::TessMaterial():Material(){
     	void main(){\n\
     		vec4 viewDirection = normalize(-tePos);\n\
 			outputColor = vec4(0.0,0.0,0.0,1.0);\n\
-			for(int i=0; i< numDirLights ;i++){\n\
+			#if MAX_DIR_LIGHTS > 0\n\
+			for(int i=0; i< MAX_DIR_LIGHTS ;i++){\n\
 				vec4 normDirection = normalize(dirLights[i].vectorToLight);\n\
 				vec4 normal = normalize(teNormal);\n\
 				float cosAngIncidence;\n\
@@ -153,7 +162,9 @@ TessMaterial::TessMaterial():Material(){
             	outputColor = outputColor + (dirLights[i].color * material.diffuseColor * cosAngIncidence);\n\
             	outputColor = outputColor + (material.specularColor * blinnPhongTerm);\n\
 			}\n\
-			for(int i=0; i< numPointLights ;i++){\n\
+			#endif\n\
+			#if MAX_P_LIGHTS > 0\n\
+			for(int i=0; i< MAX_P_LIGHTS ;i++){\n\
 				vec4 difference = pLights[i].position - tePos;\n\
 				vec4 normDirection = normalize(difference);\n\
 				vec4 attenLightIntensity = attenuateLight(pLights[i].color,pLights[i].attenuation,difference);\n\
@@ -164,11 +175,18 @@ TessMaterial::TessMaterial():Material(){
             	outputColor = outputColor + (attenLightIntensity * material.diffuseColor * cosAngIncidence);\n\
             	outputColor = outputColor + (material.specularColor * attenLightIntensity * blinnPhongTerm);\n\
 			}\n\
+			#endif\n\
             outputColor = outputColor + (material.diffuseColor * ambientLight);\n\
     	}");
+}
+void TessMaterial::makePrograms(int numDirLights,int numPointLights){
 	this->program = new GLProgram();
-	GLuint vertexShader = this->program->compileShader(GL_VERTEX_SHADER,this->vertexShaderSource);
-	GLuint fragmentShader = this->program->compileShader(GL_FRAGMENT_SHADER,this->fragmentShaderSource);
+	char* vs = this->configureSource(this->vertexShaderSource,numDirLights,numPointLights);
+	char* fs = this->configureSource(this->fragmentShaderSource,numDirLights,numPointLights);
+	GLuint vertexShader = this->program->compileShader(GL_VERTEX_SHADER,vs);
+	delete vs;
+	GLuint fragmentShader = this->program->compileShader(GL_FRAGMENT_SHADER,fs);
+	delete fs;
 	GLuint tessControlShader = this->program->compileShader(GL_TESS_CONTROL_SHADER,this->tessControlShaderSource);
 	GLuint tessEvaluationShader = this->program->compileShader(GL_TESS_EVALUATION_SHADER,this->tessEvaluationShaderSource);
 	this->program->setVertexShader(vertexShader);
@@ -185,11 +203,11 @@ TessMaterial::TessMaterial():Material(){
 	this->program->getUniforms()->unifShininess = glGetUniformLocation(prog,"material.shininess");
 	this->program->getUniforms()->unifDistanceToCamera = glGetUniformLocation(prog,"distanceToCamera");
 	this->program->getUniforms()->unifBlockMatrices = glGetUniformBlockIndex(prog,"globalMatrices");
-	glUniformBlockBinding(prog, this->program->getUniforms()->unifBlockMatrices,0);
+	glUniformBlockBinding(prog, this->program->getUniforms()->unifBlockMatrices,GLOBAL_MATRICES_UBI);
 	this->program->getUniforms()->unifBlockDirectionalLights = glGetUniformBlockIndex(prog,"directionalLights");
-	glUniformBlockBinding(prog, this->program->getUniforms()->unifBlockDirectionalLights,1);
+	glUniformBlockBinding(prog, this->program->getUniforms()->unifBlockDirectionalLights,DIRLIGHTS_UBI);
 	this->program->getUniforms()->unifBlockAmbientLight = glGetUniformBlockIndex(prog,"ambLight");
-	glUniformBlockBinding(prog, this->program->getUniforms()->unifBlockAmbientLight,2);
+	glUniformBlockBinding(prog, this->program->getUniforms()->unifBlockAmbientLight,AMBLIGHT_UBI);
 	this->program->getUniforms()->unifBlockPointLights = glGetUniformBlockIndex(prog,"pointLights");
-	glUniformBlockBinding(prog, this->program->getUniforms()->unifBlockPointLights,3);
+	glUniformBlockBinding(prog, this->program->getUniforms()->unifBlockPointLights,PLIGHTS_UBI);
 }

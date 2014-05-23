@@ -9,6 +9,7 @@ private:
 public:
 	TessMaterial();
 	TessMaterial(const Material &material);
+	void makePrograms(int numDirLights, int numPointLights);
 };
 
 #endif
