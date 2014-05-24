@@ -211,22 +211,21 @@ bool Scene::getPLightAdded(){
 	return this->pLightAdded;
 }
 
-bool Scene::setObjectAdded(bool objectAdded){
+void Scene::setObjectAdded(bool objectAdded){
 	this->objectAdded = objectAdded;
 }
 
-bool Scene::setGeometryAdded(bool geometryAdded){
+void Scene::setGeometryAdded(bool geometryAdded){
 	this->geometryAdded = geometryAdded;
 }
 
-bool Scene::setMaterialAdded(bool materialAdded){
+void Scene::setMaterialAdded(bool materialAdded){
 	this->materialAdded = materialAdded;
 }
 
-bool Scene::setDirLightAdded(bool dirLightAdded){
+void Scene::setDirLightAdded(bool dirLightAdded){
 	this->dirLightAdded = dirLightAdded;
 }
-
-bool Scene::setPLightAdded(bool pLightAdded){
+void Scene::setPLightAdded(bool pLightAdded){
 	this->pLightAdded = pLightAdded;
 }

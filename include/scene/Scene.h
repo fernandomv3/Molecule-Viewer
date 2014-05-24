@@ -64,11 +64,11 @@ public:
 	bool getMaterialAdded();
 	bool getDirLightAdded();
 	bool getPLightAdded();
-	bool setObjectAdded(bool objectAdded);
-	bool setGeometryAdded(bool geometryAdded);
-	bool setMaterialAdded(bool materialAdded);
-	bool setDirLightAdded(bool dirLightAdded);
-	bool setPLightAdded(bool pLightAdded);
+	void setObjectAdded(bool objectAdded);
+	void setGeometryAdded(bool geometryAdded);
+	void setMaterialAdded(bool materialAdded);
+	void setDirLightAdded(bool dirLightAdded);
+	void setPLightAdded(bool pLightAdded);
 	~Scene();
 };
 #endif
