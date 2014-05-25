@@ -34,6 +34,7 @@ struct bufferObjects{
 	MaterialType type;
 	GLuint pointLights;
 	GLuint directionalLights;
+	GLuint globalMatrices;
 	GLuint ambientLight;
 	GLuint materials;
 	GLuint bufferIndices;
@@ -53,10 +54,10 @@ class Renderer{
 private:
 	GLuint vao;
 	BufferObjects buffers;
-	void calculateGlobalMatrices(Scene* scene);
-	void calculateDirectionalLights(Scene* scene);
-	void calculateAmbientLights(Scene* scene);
-	void calculatePointLights(Scene* scene);
+	GLuint calculateGlobalMatrices(Scene* scene);
+	GLuint calculateDirectionalLights(Scene* scene);
+	GLuint calculateAmbientLights(Scene* scene);
+	GLuint calculatePointLights(Scene* scene);
 	void setMaterialUniforms(Material* material, Scene* scene);
 public:
 	Renderer();
@@ -69,6 +70,8 @@ public:
 	GLuint* createGeometryBuffers(Scene* scene);
 	GLuint createMaterialBuffer(Scene* scene);
 	GLuint* createObjectBuffers(list<Object3D*> objects);
+	void renderMultiDraw(Scene* scene);
+	void updateModelMatrices(GLuint modelMatricesBuffer,list<Object3D*> objects);
 };
 
 #endif

@@ -8,6 +8,7 @@
 
 Renderer::Renderer(){
 	this->vao=0;
+	this->buffers=NULL;
 }
 
 GLuint Renderer::makeBuffer(GLenum target, void* bufferData, GLsizei bufferSize){
@@ -33,9 +34,9 @@ GLuint Renderer::makePointBuffer(GLenum target, void* bufferData, GLsizei buffer
 	return buffer;
 }
 
-void Renderer::calculateDirectionalLights(Scene* scene){
+GLuint Renderer::calculateDirectionalLights(Scene* scene){
 	GLint numLights = scene->getDirectionalLights().size();
-	if(numLights == 0) return;
+	if(numLights == 0) return 0;
 	int bufferSize = sizeof(struct dirLight) * numLights;
 	if(scene->getDirectionalLightsUBO() == 0){
 		GLuint buf = makeUBO(NULL, bufferSize);
@@ -62,11 +63,12 @@ void Renderer::calculateDirectionalLights(Scene* scene){
 	glBindBuffer(GL_UNIFORM_BUFFER,scene->getDirectionalLightsUBO());
 	glBufferSubData(GL_UNIFORM_BUFFER,0,bufferSize,&lights);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	return scene->getDirectionalLightsUBO();
 }
 
-void Renderer::calculatePointLights(Scene* scene){
+GLuint Renderer::calculatePointLights(Scene* scene){
 	GLint numLights = scene->getPointLights().size();
-	if(numLights == 0) return;
+	if(numLights == 0) return 0;
 	int bufferSize = sizeof(struct pLight)*numLights;
 	if(scene->getPointLightsUBO() == 0){
 		GLuint buf = makeUBO(NULL, bufferSize);
@@ -94,9 +96,10 @@ void Renderer::calculatePointLights(Scene* scene){
 	glBindBuffer(GL_UNIFORM_BUFFER,scene->getPointLightsUBO());
 	glBufferSubData(GL_UNIFORM_BUFFER,0,bufferSize,&lights);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	return scene->getPointLightsUBO();
 }
 
-void Renderer::calculateAmbientLights(Scene* scene){
+GLuint Renderer::calculateAmbientLights(Scene* scene){
 	if(scene->getAmbientLightUBO() == 0){
 		GLfloat* data = scene->getAmbientLight()->getColor()->getAsArray();
 		GLuint buf = makeUBO(data,sizeof(GLfloat)*4);
@@ -110,9 +113,10 @@ void Renderer::calculateAmbientLights(Scene* scene){
 		);
 		delete[] data;
 	}
+	return scene->getAmbientLightUBO();
 }
 
-void Renderer::calculateGlobalMatrices(Scene* scene){
+GLuint Renderer::calculateGlobalMatrices(Scene* scene){
 	//update UBO TODO: update world matrix only as projection never changes
 	scene->getCamera()->updateWorldMatrix();
 	GLfloat* data = scene->getCamera()->getMatricesArray();
@@ -132,6 +136,7 @@ void Renderer::calculateGlobalMatrices(Scene* scene){
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	}
 	delete[] data;
+	return scene->getCamera()->getMatricesUBO();
 }
 
 void Renderer::setMaterialUniforms(Material* material,Scene* scene){
@@ -382,6 +387,9 @@ GLuint Renderer::createMaterialBuffer(Scene* scene){
 		MaterialStruct mat = (*it)->getAsStruct(); 
 		materialList[i] = *mat;
 		delete mat;
+		if ((*it)->getProgram() == NULL){
+			(*it)->makePrograms(scene->getDirectionalLights().size(),scene->getPointLights().size());
+		}
 	}
 
 	GLuint ubo = makeUBO((void*)materialList, numMaterials * sizeof(struct materialStruct));
@@ -484,4 +492,109 @@ GLuint* Renderer::createObjectBuffers(list<Object3D*> objectList){
 	delete[] indirects;
 	delete[] indices;
 	return buffers;
+}
+
+void Renderer::renderMultiDraw(Scene* scene){
+	//vao initialization;
+	if(this->vao == 0){
+		glGenVertexArrays(1, &(this->vao));
+		glBindVertexArray(this->vao);
+	}
+	if(this->buffers == NULL){
+		this->buffers = new struct bufferObjects;//must be an array for multimaterial rendering
+		this->buffers->pointLights = 0;
+		this->buffers->directionalLights = 0;
+		this->buffers->ambientLight = 0;
+		this->buffers->materials = 0;
+		this->buffers->bufferIndices = 0;
+		this->buffers->modelMatrices = 0;
+		this->buffers->vertexBuffer = 0;
+		this->buffers->elementBuffer = 0;
+		this->buffers->normalBuffer = 0;
+		this->buffers->globalMatrices =0;
+		this->buffers->indirectBuffer = 0;
+	}
+
+	this->buffers->ambientLight = this->calculateAmbientLights(scene);
+
+	this->buffers->globalMatrices = this->calculateGlobalMatrices(scene);
+
+
+	this->buffers->directionalLights = this->calculateDirectionalLights(scene);
+
+
+	this->buffers->pointLights = this->calculatePointLights(scene);
+	
+	if(this->buffers->vertexBuffer == 0){
+		GLuint* buffers = this->createGeometryBuffers(scene);
+		this->buffers->vertexBuffer = buffers[VERTICES];
+		this->buffers->elementBuffer = buffers[ELEMENTS];
+		this->buffers->normalBuffer = buffers[NORMALS];
+		delete[] buffers;
+	}
+	if(this->buffers->indirectBuffer == 0 ||this->buffers->modelMatrices == 0 || this->buffers->bufferIndices == 0){
+		GLuint* buffers = this->createObjectBuffers(scene->getObjects());
+		this->buffers->bufferIndices = buffers[BUFFER_INDICES];
+		this->buffers->indirectBuffer = buffers[INDIRECT];
+		this->buffers->modelMatrices = buffers[MODEL_MATRIX];
+		delete[] buffers;
+	}
+
+	if(this->buffers->materials == 0){
+		this->buffers->materials = this->createMaterialBuffer(scene);
+	}
+	GLProgram* program = (*(scene->getMaterials().begin()))->getProgram();
+	//set vertex attribute
+	glBindBuffer(GL_ARRAY_BUFFER,this->buffers->vertexBuffer);
+	glVertexAttribPointer(
+		program->getAttrPosition(),//attribute from prgram(position)
+		3,//number of components per vertex
+		GL_FLOAT,//type of data
+		GL_FALSE,//normalized
+		0,//separation between 2 values
+		(void*)0 //offset
+	);
+	glEnableVertexAttribArray(program->getAttrPosition());
+
+	//set normal attribute
+
+	glBindBuffer(GL_ARRAY_BUFFER,this->buffers->normalBuffer);
+	glVertexAttribPointer(
+		program->getAttrNormal(),//attribute from prgram(position)
+		3,//number of components per vertex
+		GL_FLOAT,//type of data
+		GL_FALSE,//normalized
+		0,//separation between 2 values
+		(void*)0 //offset
+	);
+	glEnableVertexAttribArray(program->getAttrNormal());
+	
+	glUseProgram(program->getProgram());
+
+	this->updateModelMatrices(this->buffers->modelMatrices,scene->getObjects());
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,this->buffers->elementBuffer);
+	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, this->buffers->indirectBuffer);
+	glMultiDrawElementsIndirect(GL_TRIANGLES,GL_UNSIGNED_SHORT,(void*)0,scene->getObjects().size(),sizeof(struct indirect));
+
+	glDisableVertexAttribArray(program->getAttrPosition());
+	glDisableVertexAttribArray(program->getAttrNormal());
+}
+
+void Renderer::updateModelMatrices(GLuint modelMatricesBuffer,list<Object3D*> objects){
+	list<Object3D*>::iterator it = objects.begin();
+	int size = objects.size();
+	GLfloat* matrices = new GLfloat[size *16];
+	GLfloat* ptrMatrices= matrices;
+	for(;it!= objects.end();it++){
+		(*it)->updateModelMatrix();
+		GLfloat* mat = (*it)->getModelMatrix()->getElements();
+		memcpy(ptrMatrices,mat, sizeof(GLfloat)*16);
+		ptrMatrices += 16;
+		delete[] mat;
+	}
+	glBindBuffer(GL_UNIFORM_BUFFER,modelMatricesBuffer);
+	glBufferSubData(GL_UNIFORM_BUFFER,0,size*sizeof(GLfloat)*16,matrices);
+	glBindBuffer(GL_UNIFORM_BUFFER,0);
+
 }
