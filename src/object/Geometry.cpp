@@ -17,6 +17,8 @@ Geometry::Geometry(){
 	this->normalBuffer =0;
 	this->boundingBox =NULL;
 	this->sceneIndex = -1;
+	this->sceneVerticesOffset = 0;
+	this->sceneIndicesOffset=0;
 }
 GLfloat* Geometry::getVertices(){
 	return this->vertices;
@@ -235,4 +237,19 @@ int Geometry::getSceneIndex(){
 
 void Geometry::setSceneIndex(int index){
 	this->sceneIndex = index;
+}
+
+
+int Geometry::getSceneIndicesOffset(){
+	return this->sceneIndicesOffset;
+}
+
+int Geometry::getSceneVerticesOffset(){
+	return this->sceneVerticesOffset;
+}
+void Geometry::setSceneIndicesOffset(int offset){
+	this->sceneIndicesOffset = offset;
+}
+void Geometry::setSceneVerticesOffset(int offset){
+	this->sceneVerticesOffset = offset;
 }

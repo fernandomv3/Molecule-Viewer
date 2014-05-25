@@ -24,6 +24,8 @@ private:
 	GLuint elementBuffer;
 	GLuint normalBuffer;
 	int sceneIndex;
+	int sceneIndicesOffset;
+	int sceneVerticesOffset;
 	BoundingBox boundingBox;
 	~Geometry();
 public:
@@ -52,6 +54,10 @@ public:
 	static Geometry* generateCubeWireframe(float size);
 	int getSceneIndex();
 	void setSceneIndex(int index);
+	int getSceneIndicesOffset();
+	int getSceneVerticesOffset();
+	void setSceneIndicesOffset(int offset);
+	void setSceneVerticesOffset(int offset);
 };
 
 #endif

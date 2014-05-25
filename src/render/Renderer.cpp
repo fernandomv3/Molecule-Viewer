@@ -384,20 +384,21 @@ GLuint Renderer::createMaterialBuffer(Scene* scene){
 		delete mat;
 	}
 
-	Gluint ubo = makeUBO((void*)materialList, numMaterials * sizeof(struct materialStruct));
+	GLuint ubo = makeUBO((void*)materialList, numMaterials * sizeof(struct materialStruct));
 	delete[] materialList;
 	return ubo;
 }
 
-GLuint* createGeometryBuffers(Scene* scene){
+GLuint* Renderer::createGeometryBuffers(Scene* scene){
 	GLuint* buffers = new GLuint[3];
 	list<Geometry*> geometries= scene->getGeometries();
-	int numGeometries = geometries.size();
 	list<Geometry*>::iterator it = geometries.begin();
 	int totalNumElements=0;
 	int totalNumVertices=0;
 	int totalNumNormals=0;
 	for(;it != geometries.end();it++){
+		(*it)->setSceneIndicesOffset(totalNumElements);
+		(*it)->setSceneVerticesOffset(totalNumVertices);
 		totalNumElements += (*it)->getNumElements();
 		totalNumVertices += (*it)->getNumVertices();
 		totalNumNormals += (*it)->getNumNormals();
@@ -438,27 +439,14 @@ GLuint* createGeometryBuffers(Scene* scene){
 	return buffers;
 }
 
-GLuint Renderer::createBufferIndicesBuffer(list<Object3D*> objectList){
-	list<Object3D*>::iterator it = objectList.begin();
-	GLfloat* indicesBuffer = new GLfloat[objectList.size()];
-	GLfloat* ptrIndicesBuffer = indicesBuffer;
-	for(;it!= objectList.end();it++){
-		GLfloat* mat = (*it)->getModelMatrix()->getElements();
-		memcpy(ptrMatrices,mat, sizeof(GLfloat)*16);
-		delete[] mat;
-	}
-	delete[] matrices;
-}
-
-GLuint Renderer::createObjectBuffers(list<Object3D*> objectList){
+GLuint* Renderer::createObjectBuffers(list<Object3D*> objectList){
+	GLuint* buffers = new GLuint[3];
 	list<Object3D*>::iterator it = objectList.begin();
 	int size = objectList.size();
-	GLfloat* matrices = new GLfloat[size];
+	GLfloat* matrices = new GLfloat[size *16];
 	struct bufferIndices* indices = new struct bufferIndices[size];
 	struct indirect* indirects = new struct indirect[size];
 	GLfloat* ptrMatrices = matrices;
-	struct bufferIndices* ptrBufferIndices;
-	struct indirect* ptrIndirects;
 
 	for(int i=0;it!= objectList.end();it++ , i++){
 		
@@ -468,18 +456,32 @@ GLuint Renderer::createObjectBuffers(list<Object3D*> objectList){
 		ptrMatrices += 16;
 		delete[] mat;
 
-		indices[i].materialIndex = (*it)->getMaterial()->getSceneIndex();
-		indices[i].visible = (uint)((*it)->getOctreeNode()->isVisible());
+		indices[i].materialIndex = ((Mesh*)(*it))->getMaterial()->getSceneIndex();
+		indices[i].visible = (GLuint)(((Mesh*)(*it))->getOctreeNode()->isVisible());
 
-		indirects[i].count = (*it)->getGeometry()->getNumElements();
+		indirects[i].count = ((Mesh*)(*it))->getGeometry()->getNumElements();
 		indirects[i].instanceCount =1;
-		indirects[i].firstIndex = ?;
-		indirects[i].baseVertex = ?;
-		indirects[i].baseInstance= ?;
+		indirects[i].firstIndex = ((Mesh*)(*it))->getGeometry()->getSceneIndicesOffset();
+		indirects[i].baseVertex = ((Mesh*)(*it))->getGeometry()->getSceneVerticesOffset();
+		indirects[i].baseInstance= 0;
 	}
+	buffers[MODEL_MATRIX] = this->makeBuffer(
+		GL_UNIFORM_BUFFER,
+		matrices,
+		sizeof(GL_FLOAT)*size*16
+	);
+	buffers[BUFFER_INDICES] = this->makeBuffer(
+		GL_UNIFORM_BUFFER,
+		indices,
+		sizeof(struct bufferIndices)*size
+	);
+	buffers[INDIRECT] = this->makeBuffer(
+		GL_DRAW_INDIRECT_BUFFER,
+		indirects,
+		sizeof(struct indirect)*size
+	);
 	delete[] matrices;
-}
-
-GLuint Renderer::createIndirectBuffer(list<Object3D*> objectList){
-
+	delete[] indirects;
+	delete[] indices;
+	return buffers;
 }

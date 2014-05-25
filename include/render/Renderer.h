@@ -23,11 +23,11 @@ struct bufferIndices{
 };
 
 struct indirect{
-    uint  count;
-    uint  instanceCount;
-    uint  firstIndex;
-    uint  baseVertex;
-    uint  baseInstance;
+    GLuint  count;
+    GLuint  instanceCount;
+    GLuint  firstIndex;
+    GLuint  baseVertex;
+    GLuint  baseInstance;
 };
 
 struct bufferObjects{
@@ -67,11 +67,8 @@ public:
 	void renderOctreeNode(OctreeNode* node,Scene* scene);
 	BufferObjects getBuffers();
 	GLuint* createGeometryBuffers(Scene* scene);
-	GLuint createModelMatrixBuffer(Scene* scene);
 	GLuint createMaterialBuffer(Scene* scene);
-	GLuint createBufferIndicesBuffer();
-	GLuint createIndirectBuffer();
-	GLuint* createObjectBuffers();
+	GLuint* createObjectBuffers(list<Object3D*> objects);
 };
 
 #endif
