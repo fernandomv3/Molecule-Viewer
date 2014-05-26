@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <string.h>
+#include <scene/Scene.h>
 using namespace std;
 
 Material::Material(){
@@ -106,13 +107,18 @@ void Material::setSceneIndex(int index){
 }
 
 
-char* Material::configureSource(char* source,int numDirLights, int numPointLights){
+char* Material::configureSource(char* source,int numDirLights , int numPointLights, int numObjects, int numMaterials){
 	char src[strlen(source)+100];
-	sprintf(src,source,numDirLights,numPointLights);
+	if( numMaterials != 0){
+		sprintf(src,source,numObjects,numMaterials,numDirLights,numPointLights);
+	}
+	else{
+		sprintf(src,source,numObjects,numDirLights,numPointLights);
+	}
 	delete source;
 	return strdup(src);
 }
 
-void Material::makePrograms(int numDirLights, int numPointLights){
+void Material::makePrograms(Scene* scene){
 	
 }

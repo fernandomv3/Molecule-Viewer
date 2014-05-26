@@ -13,6 +13,8 @@ struct uniforms {
 	GLuint unifSpecularColor;
 	GLuint unifShininess;
 	GLuint unifDistanceToCamera;
+	GLuint unifMaterial;
+	GLuint unifIndices;
 };
 
 typedef struct uniforms* Uniforms;

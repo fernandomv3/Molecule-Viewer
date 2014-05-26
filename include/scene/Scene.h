@@ -10,7 +10,8 @@
 #include "light/PointLight.h"
 #include "scene/OctreeNode.h"
 #include "object/Geometry.h"
-#include "material/Material.h"
+
+class Material;
 
 using namespace std;
 

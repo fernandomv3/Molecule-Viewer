@@ -11,6 +11,8 @@ GLProgram::GLProgram(){
     this->uniforms->unifBlockMatrices =0;
     this->uniforms->unifBlockDirectionalLights=0;
     this->uniforms->unifBlockAmbientLight =0;
+    this->uniforms->unifMaterial =0;
+    this->uniforms->unifIndices = 0;
 }
 
 GLuint GLProgram::getVertexShader(){

@@ -220,7 +220,7 @@ void render(){
 	oldTime=newTime;*/
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	renderer->render(scene);
+	renderer->renderMultiDraw(scene);
     SDL_GL_SwapWindow(window);
 }
 
@@ -245,7 +245,7 @@ int main(int argc, char** argv){
 	/*int c;
 	scanf("%d",&c);*/
 	scene = new Scene();
-	mol = new Molecule("dna.pdb");
+	mol = new Molecule("caffeine.pdb");
 	mol->addToScene(scene);
 	Camera* camera = scene->getCamera();
 	camera->setTarget(new Vec3(mol->getX(),mol->getY(),mol->getZ()));

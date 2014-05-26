@@ -5,7 +5,7 @@
 class PhongMaterial:public Material{
 public:
 	PhongMaterial();
-	void makePrograms(int numDirLights, int numPointLights);
+	void makePrograms(Scene* scene);
 };
 
 #endif

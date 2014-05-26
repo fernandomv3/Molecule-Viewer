@@ -69,7 +69,7 @@ public:
 	BufferObjects getBuffers();
 	GLuint* createGeometryBuffers(Scene* scene);
 	GLuint createMaterialBuffer(Scene* scene);
-	GLuint* createObjectBuffers(list<Object3D*> objects);
+	GLuint* createObjectBuffers(Scene* scene);
 	void renderMultiDraw(Scene* scene);
 	void updateModelMatrices(GLuint modelMatricesBuffer,list<Object3D*> objects);
 };

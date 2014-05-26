@@ -6,6 +6,7 @@
 //materials own shaders (vertex, fragment), programs and uniforms
 //future adds -> opacity, bumpmaps, textures, normal maps
 //future -> make material memory self managed
+class Scene;
 
 enum MaterialType {BASIC_MATERIAL,GOURAUD_MATERIAL,PHONG_MATERIAL,TESS_MATERIAL,CEL_MATERIAL,POINT_MATERIAL,LINE_MATERIAL};
 enum {GLOBAL_MATRICES_UBI,DIRLIGHTS_UBI,AMBLIGHT_UBI,PLIGHTS_UBI,MODEL_MATRICES_UBI,MATERIALS_UBI,INDICES_UBI};
@@ -48,9 +49,9 @@ public:
 	GLfloat getShininess();
 	MaterialStruct getAsStruct();
 	MaterialType getType();
-	char* configureSource(char* source,int numDirLights, int numPointLights);
+	char* configureSource(char* source,int numDirLights, int numPLights, int numObjects=0, int numMaterials =0);
 	int getSceneIndex();
 	void setSceneIndex(int index);
-	virtual void makePrograms(int numDirLights, int numPointLights);
+	virtual void makePrograms(Scene* scene);
 };
 #endif
