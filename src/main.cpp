@@ -116,7 +116,8 @@ void updateLightSphericalPosition(float deltaPhi, float deltaTheta){
 //move this function as a method of Object3D
 void updateCamSphericalPosition(float deltaPhi, float deltaTheta, float radiusFactor){
 	Camera* camera = scene->getCamera();
-	Vec3* molPos = new Vec3(mol->getX(),mol->getY(),mol->getZ());
+	//Vec3* molPos = new Vec3(mol->getX(),mol->getY(),mol->getZ());
+	Vec3* molPos = new Vec3(0,0,0);
 	SphericalCoord* sphCoord = new SphericalCoord(camera->getPosition(),molPos);
 	float r = sphCoord->getR()*radiusFactor;
 	r = fmax(0.2,fmin(99.0,r));
@@ -248,16 +249,22 @@ int main(int argc, char** argv){
 	mol = new Molecule("caffeine.pdb");
 	mol->addToScene(scene);
 	Camera* camera = scene->getCamera();
-	camera->setTarget(new Vec3(mol->getX(),mol->getY(),mol->getZ()));
+	//camera->setTarget(new Vec3(mol->getX(),mol->getY(),mol->getZ()));
+	camera->setTarget(new Vec3(0,0,0));
+	Geometry* geom = new Geometry();
+	geom->loadDataFromFile("icosphere.mesh");
+	Material* mat = new PhongMaterial();
+	Mesh* sphere = new Mesh(geom,mat);
+	//scene->addObject((Object3D*)sphere);
 	light1 = new DirectionalLight();
 	light1->getPosition()->setX(2.0);
 	light1->getPosition()->setY(4.0);
 	light1->getPosition()->setZ(5.0);
 	light1->getColor()->setRGB(1,1,1);
 	scene->addDirectionalLight(light1);
-	scene->getOctree()->getPosition()->setX(mol->getX());
-	scene->getOctree()->getPosition()->setY(mol->getY());
-	scene->getOctree()->getPosition()->setZ(mol->getZ());
+	scene->getOctree()->getPosition()->setX(/*mol->getX()*/0);
+	scene->getOctree()->getPosition()->setY(/*mol->getY()*/0);
+	scene->getOctree()->getPosition()->setZ(/*mol->getZ()*/0);
 	/*mol->getPosition()->setX(5);
 	mol->getPosition()->setY(5);
 	mol->getPosition()->setZ(3);*/
