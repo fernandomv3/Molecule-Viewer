@@ -406,7 +406,7 @@ GLuint Renderer::createMaterialBuffer(Scene* scene){
 }
 
 GLuint* Renderer::createGeometryBuffers(Scene* scene){
-	GLuint* buffers = new GLuint[3];
+	GLuint* buffers = new GLuint[4];
 	list<Geometry*> geometries= scene->getGeometries();
 	list<Geometry*>::iterator it = geometries.begin();
 	int totalNumElements=0;
@@ -423,10 +423,13 @@ GLuint* Renderer::createGeometryBuffers(Scene* scene){
 	GLfloat* vertices = new GLfloat[totalNumVertices];
 	GLfloat* normals = new GLfloat[totalNumNormals];
 	GLushort* elements = new GLushort[totalNumElements];
+	GLushort* drawID = new GLushort[totalNumVertices/3];
+
 	GLfloat* ptrVertices = vertices;
 	GLfloat* ptrNormals = normals;
 	GLushort* ptrElements = elements;
-
+	GLushort* ptrDrawID = drawID;
+	int i=0;
 	for(it = geometries.begin(); it != geometries.end();it++){
 		Geometry* geom = *it;
 		memcpy(ptrVertices,geom->getVertices(),sizeof(GLfloat)*geom->getNumVertices());
@@ -435,6 +438,11 @@ GLuint* Renderer::createGeometryBuffers(Scene* scene){
 		ptrNormals += geom->getNumNormals();
 		memcpy(ptrElements,geom->getElements(),sizeof(GLushort)*geom->getNumElements());
 		ptrElements += geom->getNumElements();
+		for(int j=0; j< geom->getNumVertices()/3;j++){
+			ptrDrawID[j]= i;
+		}
+		ptrDrawID += geom->getNumVertices()/3;
+		i++;
 	}
 	buffers[VERTICES] = this->makeBuffer(
 		GL_ARRAY_BUFFER,
@@ -450,6 +458,11 @@ GLuint* Renderer::createGeometryBuffers(Scene* scene){
 		GL_ELEMENT_ARRAY_BUFFER,
 		elements,
 		sizeof(GLushort)*totalNumElements
+	);
+	buffers[DRAWID] = this->makeBuffer(
+		GL_ARRAY_BUFFER,
+		drawID,
+		sizeof(GLushort)*totalNumVertices/3
 	);
 
 	/*delete vertices;
@@ -545,6 +558,7 @@ void Renderer::renderMultiDraw(Scene* scene){
 		this->buffers->normalBuffer = 0;
 		this->buffers->globalMatrices =0;
 		this->buffers->indirectBuffer = 0;
+		this->buffers->drawIDBuffer =0;
 	}
 
 	this->buffers->ambientLight = this->calculateAmbientLights(scene);
@@ -561,6 +575,7 @@ void Renderer::renderMultiDraw(Scene* scene){
 		this->buffers->vertexBuffer = buf[VERTICES];
 		this->buffers->elementBuffer = buf[ELEMENTS];
 		this->buffers->normalBuffer = buf[NORMALS];
+		this->buffers->drawIDBuffer = buf[DRAWID];
 		delete[] buf;
 	}
 
@@ -600,6 +615,19 @@ void Renderer::renderMultiDraw(Scene* scene){
 		(void*)0 //offset
 	);
 	glEnableVertexAttribArray(program->getAttrNormal());
+
+	//set drawID attribute
+
+	glBindBuffer(GL_ARRAY_BUFFER,this->buffers->drawIDBuffer);
+	glVertexAttribPointer(
+		program->getAttrDrawID(),//attribute from prgram(position)
+		1,//number of components per vertex
+		GL_UNSIGNED_SHORT,//type of data
+		GL_FALSE,//normalized
+		0,//separation between 2 values
+		(void*)0 //offset
+	);
+	glEnableVertexAttribArray(program->getAttrDrawID());
 	
 	glUseProgram(program->getProgram());
 

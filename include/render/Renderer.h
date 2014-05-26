@@ -43,9 +43,10 @@ struct bufferObjects{
 	GLuint elementBuffer;
 	GLuint normalBuffer;
 	GLuint indirectBuffer;
+	GLuint drawIDBuffer;
 };
 
-enum {VERTICES,NORMALS,ELEMENTS};
+enum {VERTICES,NORMALS,ELEMENTS,DRAWID};
 enum {MODEL_MATRIX,BUFFER_INDICES,INDIRECT};
 
 typedef struct bufferObjects* BufferObjects;

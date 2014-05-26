@@ -28,6 +28,7 @@ private:
 	GLuint program;
 	GLuint attrPosition;
 	GLuint attrNormal;
+	GLuint attrDrawID;
 	Uniforms uniforms;
 public:
 	GLProgram();
@@ -35,6 +36,8 @@ public:
 	void setAttrPosition(GLuint attrPosition);
 	GLuint getAttrNormal();
 	void setAttrNormal(GLuint attrNormal);
+	GLuint getAttrDrawID();
+	void setAttrDrawID(GLuint attrDrawID);
 	GLuint getVertexShader();
 	GLuint getFragmentShader();
 	GLuint getTessControlShader();

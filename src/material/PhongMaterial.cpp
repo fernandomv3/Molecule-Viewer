@@ -15,6 +15,8 @@ PhongMaterial::PhongMaterial():Material(){
 		};\n\
 		in vec3 normal;\n\
 		in vec3 position;\n\
+		in int drawID;\n\
+		flat out int vDrawID;\n\
 		out vec4 vertexNormal;\n\
 		out vec4 worldSpacePosition;\n\
 		layout(std140) uniform globalMatrices{\n\
@@ -22,12 +24,13 @@ PhongMaterial::PhongMaterial():Material(){
 			mat4 projectionMatrix;\n\
 		};\n\
 		void main(){\n\
+			vDrawID = drawID;\n\
 			vec4 pos = vec4(position,1.0);\n\
-			vec4 modelSpace = modelMatrix[gl_DrawIDARB] * pos;\n\
+			vec4 modelSpace = modelMatrix[drawID] * pos;\n\
 			vec4 worldSpace = worldMatrix * modelSpace;\n\
 			gl_Position = projectionMatrix * worldSpace;\n\
 			worldSpacePosition = worldSpace;\n\
-			vertexNormal = normalize(worldMatrix * modelMatrix[gl_DrawIDARB] * vec4(normal,0.0));\n\
+			vertexNormal = normalize(worldMatrix * modelMatrix[drawID] * vec4(normal,0.0));\n\
 		}");
     this->fragmentShaderSource=strdup(
     	"#version 440 core\n\
@@ -85,6 +88,7 @@ PhongMaterial::PhongMaterial():Material(){
 		};\n\
     	in vec4 vertexNormal;\n\
 		in vec4 worldSpacePosition;\n\
+		flat in int vDrawID;\n\
     	out vec4 outputColor;\n\
     	#if MAX_P_LIGHTS > 0\n\
     	vec4 attenuateLight(in vec4 color, in float attenuation, in vec4 vectorToLight){\n\
@@ -117,10 +121,10 @@ PhongMaterial::PhongMaterial():Material(){
 				vec4 normDirection = normalize(dirLights[i].vectorToLight);\n\
 				vec4 normal = normalize(vertexNormal);\n\
 				float cosAngIncidence;\n\
-				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,normal,viewDirection,material[index[gl_DrawIDARB].materialIndex].shininess,cosAngIncidence);\n\
+				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,normal,viewDirection,material[index[vDrawID].materialIndex].shininess,cosAngIncidence);\n\
 				\n\
-            	outputColor = outputColor + (dirLights[i].color * material[index[gl_DrawIDARB].materialIndex].diffuseColor * cosAngIncidence);\n\
-            	outputColor = outputColor + (material[index[gl_DrawIDARB].materialIndex].specularColor * blinnPhongTerm);\n\
+            	outputColor = outputColor + (dirLights[i].color * material[index[vDrawID].materialIndex].diffuseColor * cosAngIncidence);\n\
+            	outputColor = outputColor + (material[index[vDrawID].materialIndex].specularColor * blinnPhongTerm);\n\
 			}\n\
 			#endif\n\
 			#if MAX_P_LIGHTS >0\n\
@@ -130,13 +134,13 @@ PhongMaterial::PhongMaterial():Material(){
 				vec4 attenLightIntensity = attenuateLight(pLights[i].color,pLights[i].attenuation,difference);\n\
 				vec4 normal = normalize(vertexNormal);\n\
 				float cosAngIncidence;\n\
-				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,normal,viewDirection,material[index[gl_DrawIDARB].materialIndex].shininess,cosAngIncidence);\n\
+				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,normal,viewDirection,material[index[vDrawID].materialIndex].shininess,cosAngIncidence);\n\
 				\n\
-            	outputColor = outputColor + (attenLightIntensity * material[index[gl_DrawIDARB].materialIndex].diffuseColor * cosAngIncidence);\n\
-            	outputColor = outputColor + (material[index[gl_DrawIDARB].materialIndex].specularColor * attenLightIntensity * blinnPhongTerm);\n\
+            	outputColor = outputColor + (attenLightIntensity * material[index[vDrawID].materialIndex].diffuseColor * cosAngIncidence);\n\
+            	outputColor = outputColor + (material[index[vDrawID].materialIndex].specularColor * attenLightIntensity * blinnPhongTerm);\n\
 			}\n\
 			#endif\n\
-            outputColor = outputColor + (material[index[gl_DrawIDARB].materialIndex].diffuseColor * ambientLight);\n\
+            outputColor = outputColor + (material[index[vDrawID].materialIndex].diffuseColor * ambientLight);\n\
     	}");
 }
 
@@ -154,6 +158,7 @@ void PhongMaterial::makePrograms(Scene* scene){
 	this->program->setProgram(prog);
 	this->program->setAttrPosition(glGetAttribLocation(prog, "position"));
 	this->program->setAttrNormal(glGetAttribLocation(prog, "normal"));
+	this->program->setAttrDrawID(glGetAttribLocation(prog, "drawID"));
 	this->program->getUniforms()->unifModelMatrix = glGetUniformBlockIndex(prog,"modelMatrices");
 	glUniformBlockBinding(prog, this->program->getUniforms()->unifModelMatrix,MODEL_MATRICES_UBI);
 	this->program->getUniforms()->unifMaterial = glGetUniformBlockIndex(prog,"materials");

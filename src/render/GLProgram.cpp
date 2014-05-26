@@ -128,6 +128,15 @@ void GLProgram::setAttrNormal(GLuint attrNormal){
     this->attrNormal = attrNormal;
 }
 
+GLuint GLProgram::getAttrDrawID(){
+    return this->attrDrawID;
+}
+
+void GLProgram::setAttrDrawID(GLuint attrDrawID){
+    this->attrDrawID = attrDrawID;
+}
+
+
 Uniforms GLProgram::getUniforms(){
     return this->uniforms;
 }
