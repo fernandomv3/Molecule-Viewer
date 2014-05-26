@@ -497,7 +497,7 @@ GLuint* Renderer::createObjectBuffers(Scene* scene){
 		ptrIndirects->count = ((Mesh*)(*it))->getGeometry()->getNumElements();
 		ptrIndirects->instanceCount =1;
 		ptrIndirects->firstIndex = ((Mesh*)(*it))->getGeometry()->getSceneIndicesOffset();
-		ptrIndirects->baseVertex = ((Mesh*)(*it))->getGeometry()->getSceneVerticesOffset();
+		ptrIndirects->baseVertex = ((Mesh*)(*it))->getGeometry()->getSceneVerticesOffset()/3;
 		ptrIndirects->baseInstance= 0;
 		ptrIndirects++;
 		

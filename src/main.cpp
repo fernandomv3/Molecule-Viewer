@@ -76,6 +76,7 @@ void initializeContext(){
 				if (version == NULL) {
 					exit(-1);
 				}
+				SDL_GL_SetSwapInterval(0);
 				printf("%s\n", version);
 				glEnable(GL_DEPTH_TEST);
 				glDepthFunc(GL_LEQUAL);
