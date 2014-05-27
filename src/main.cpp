@@ -248,15 +248,21 @@ int main(int argc, char** argv){
 	scanf("%d",&c);*/
 	scene = new Scene();
 	mol = new Molecule("caffeine.pdb");
-	mol->addToScene(scene);
+	//mol->addToScene(scene);
 	Camera* camera = scene->getCamera();
 	//camera->setTarget(new Vec3(mol->getX(),mol->getY(),mol->getZ()));
 	camera->setTarget(new Vec3(0,0,0));
 	Geometry* geom = new Geometry();
 	geom->loadDataFromFile("icosphere.mesh");
 	Material* mat = new PhongMaterial();
+	Material* cylMaterial = new PhongMaterial();
+	Geometry* cylGeom = new Geometry();
+	cylGeom->loadDataFromFile("cylinder.mesh");
+	Mesh* cylinder = new Mesh(cylGeom,cylMaterial);
 	Mesh* sphere = new Mesh(geom,mat);
-	//scene->addObject((Object3D*)sphere);
+	scene->addObject((Object3D*)cylinder);
+	scene->addObject((Object3D*)sphere);
+
 	light1 = new DirectionalLight();
 	light1->getPosition()->setX(2.0);
 	light1->getPosition()->setY(4.0);
