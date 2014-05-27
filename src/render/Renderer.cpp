@@ -623,7 +623,7 @@ void Renderer::renderMultiDraw(Scene* scene){
 		program->getAttrDrawID(),//attribute from prgram(position)
 		1,//number of components per vertex
 		GL_UNSIGNED_SHORT,//type of data
-		GL_TRUE,//normalized
+		GL_FALSE,//normalized
 		0,//separation between 2 values
 		(void*)0 //offset
 	);
@@ -636,7 +636,7 @@ void Renderer::renderMultiDraw(Scene* scene){
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,this->buffers->elementBuffer);
 	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, this->buffers->indirectBuffer);
 	//printf("size %d\n", scene->getObjects().size());
-	glMultiDrawElementsIndirect(GL_TRIANGLES,GL_UNSIGNED_SHORT,(void*)0,/*scene->getObjects().size()*/2,0);
+	glMultiDrawElementsIndirect(GL_TRIANGLES,GL_UNSIGNED_SHORT,(void*)0,scene->getObjects().size(),0);
 
 	glDisableVertexAttribArray(program->getAttrPosition());
 	glDisableVertexAttribArray(program->getAttrNormal());
