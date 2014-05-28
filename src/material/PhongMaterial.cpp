@@ -10,7 +10,7 @@ PhongMaterial::PhongMaterial():Material(){
 		"#version 440 core\n\
 		#extension GL_ARB_shader_draw_parameters : enable\n\
 		#define NUM_OBJECTS %d\n\
-		layout(std140) uniform modelMatrices{\n\
+		layout(std430) buffer modelMatrices{\n\
 			mat4 modelMatrix[NUM_OBJECTS];\n\
 		};\n\
 		in vec3 normal;\n\
@@ -159,8 +159,8 @@ void PhongMaterial::makePrograms(Scene* scene){
 	this->program->setAttrPosition(glGetAttribLocation(prog, "position"));
 	this->program->setAttrNormal(glGetAttribLocation(prog, "normal"));
 	this->program->setAttrDrawID(glGetAttribLocation(prog, "drawID"));
-	this->program->getUniforms()->unifModelMatrix = glGetUniformBlockIndex(prog,"modelMatrices");
-	glUniformBlockBinding(prog, this->program->getUniforms()->unifModelMatrix,MODEL_MATRICES_UBI);
+	this->program->getUniforms()->unifModelMatrix =  glGetProgramResourceIndex(prog,GL_SHADER_STORAGE_BLOCK,"modelMatrices");
+	glShaderStorageBlockBinding(prog, this->program->getUniforms()->unifModelMatrix,MODEL_MATRICES_UBI);
 	this->program->getUniforms()->unifMaterial = glGetUniformBlockIndex(prog,"materials");
 	glUniformBlockBinding(prog, this->program->getUniforms()->unifMaterial,MATERIALS_UBI);
 	this->program->getUniforms()->unifIndices = glGetUniformBlockIndex(prog,"materialIndices");

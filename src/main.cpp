@@ -93,6 +93,9 @@ void initializeContext(){
 				glEnable(GL_LINE_SMOOTH);
 				glEnable(GL_POLYGON_SMOOTH);
 				glEnable( GL_PROGRAM_POINT_SIZE);
+				int params;
+				glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE,&params);
+				printf("GL_MAX_UNIFORM_BLOCK_SIZE %d\n",params );
 				//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			}
         }
@@ -252,7 +255,7 @@ int main(int argc, char** argv){
 	/*int c;
 	scanf("%d",&c);*/
 	scene = new Scene();
-	mol = new Molecule("caffeine.pdb");
+	mol = new Molecule("dna.pdb");
 	mol->addToScene(scene);
 	Camera* camera = scene->getCamera();
 	camera->setTarget(new Vec3(mol->getX(),mol->getY(),mol->getZ()));

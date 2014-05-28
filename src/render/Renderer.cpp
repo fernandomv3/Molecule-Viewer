@@ -527,12 +527,12 @@ GLuint* Renderer::createObjectBuffers(Scene* scene){
 	}*/
 
 	buffers[MODEL_MATRIX] = this->makeBuffer(
-		GL_UNIFORM_BUFFER,
+		GL_SHADER_STORAGE_BUFFER,
 		matrices,
 		sizeof(GLfloat)*size*16
 	);
 	glBindBufferRange(
-		GL_UNIFORM_BUFFER,//target
+		GL_SHADER_STORAGE_BUFFER,//target
 		MODEL_MATRICES_UBI,//binding point
 		buffers[MODEL_MATRIX],//data
 		0,//offset
@@ -698,9 +698,9 @@ void Renderer::updateModelMatrices(GLuint modelMatricesBuffer,GLuint indirectBuf
 		ptrIndirects++;
 		ptrMatrices += 16;
 	}
-	glBindBuffer(GL_UNIFORM_BUFFER,modelMatricesBuffer);
-	glBufferSubData(GL_UNIFORM_BUFFER,0,size*sizeof(GLfloat)*16,matrices);
-	glBindBuffer(GL_UNIFORM_BUFFER,0);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER,modelMatricesBuffer);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER,0,size*sizeof(GLfloat)*16,matrices);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER,0);
 	delete[] matrices;
 	glBindBuffer(GL_DRAW_INDIRECT_BUFFER,indirectBuffer);
 	glBufferSubData(GL_DRAW_INDIRECT_BUFFER,0,size*sizeof(struct indirect),indirects);
