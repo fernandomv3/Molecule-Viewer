@@ -34,6 +34,10 @@ SDL_Window* window = NULL;
 SDL_Surface* screenSurface;
 SDL_GLContext context = NULL;
 
+int newTime;
+int oldTime;
+char title[100];
+
 void initializeContext(){
 	if(SDL_Init(SDL_INIT_VIDEO) < 0){
 		printf("SDL could not initialize! SDL_Error: %s\n",SDL_GetError());
@@ -76,6 +80,7 @@ void initializeContext(){
 				if (version == NULL) {
 					exit(-1);
 				}
+				SDL_GL_SetSwapInterval(0);
 				printf("%s\n", version);
 				glEnable(GL_DEPTH_TEST);
 				glDepthFunc(GL_LEQUAL);
@@ -214,10 +219,11 @@ bool handleEvents(){
 }
 
 void render(){
-	/*newTime = glutGet(GLUT_ELAPSED_TIME);
+	newTime = SDL_GetTicks();
 	int diff = newTime - oldTime;
-	printf("%ld\n",diff);
-	oldTime=newTime;*/
+	sprintf(title,"Molecule: %1.0f FPS %d ms/frame",1.0/diff *1000,diff);
+	SDL_SetWindowTitle(window,title);
+	oldTime=newTime;
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	renderer->render(scene);
