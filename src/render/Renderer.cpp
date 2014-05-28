@@ -392,7 +392,12 @@ GLuint Renderer::createMaterialBuffer(Scene* scene){
 			(*it)->makePrograms(scene);
 		}
 	}
-
+	for(int i=0; i < numMaterials;i++){
+		printf("Material %d\n",i );
+		printf("\tDiffuse color: %f %f %f\n",materialList[i].diffuseColor[0],materialList[i].diffuseColor[1],materialList[i].diffuseColor[2]);
+		printf("\tSpecular color: %f %f %f\n",materialList[i].specularColor[0],materialList[i].specularColor[1],materialList[i].specularColor[2]);
+		printf("\tShininess: %f\n",materialList[i].shininess);
+	}
 	GLuint ubo = makeUBO((void*)materialList, numMaterials * sizeof(struct materialStruct));
 	glBindBufferRange(
 		GL_UNIFORM_BUFFER,//target
@@ -406,30 +411,35 @@ GLuint Renderer::createMaterialBuffer(Scene* scene){
 }
 
 GLuint* Renderer::createGeometryBuffers(Scene* scene){
-	GLuint* buffers = new GLuint[4];
+	GLuint* buffers = new GLuint[3];
 	list<Geometry*> geometries= scene->getGeometries();
+	printf("Num geometries: %d\n", geometries.size());
 	list<Geometry*>::iterator it = geometries.begin();
 	int totalNumElements=0;
 	int totalNumVertices=0;
 	int totalNumNormals=0;
-	for(;it != geometries.end();it++){
+	for(int i=0;it != geometries.end();it++){
+		printf("Geomerty %d:\n",i);
 		(*it)->setSceneIndicesOffset(totalNumElements);
 		(*it)->setSceneVerticesOffset(totalNumVertices);
+		printf("\tnumElements: %d\n",(*it)->getNumElements());
+		printf("\tElementsOffset: %d\n",totalNumElements);
+		printf("\tnumVertices: %d\n",(*it)->getNumVertices());
+		printf("\tVerticesOffset: %d\n",totalNumVertices);
+		printf("\tnumNormals: %d\n",(*it)->getNumNormals());
 		totalNumElements += (*it)->getNumElements();
 		totalNumVertices += (*it)->getNumVertices();
 		totalNumNormals += (*it)->getNumNormals();
+		i++;
 	}
-
 	GLfloat* vertices = new GLfloat[totalNumVertices];
 	GLfloat* normals = new GLfloat[totalNumNormals];
 	GLushort* elements = new GLushort[totalNumElements];
-	GLushort* drawID = new GLushort[totalNumVertices/3];
 
 	GLfloat* ptrVertices = vertices;
 	GLfloat* ptrNormals = normals;
 	GLushort* ptrElements = elements;
-	GLushort* ptrDrawID = drawID;
-	int i=0;
+
 	for(it = geometries.begin(); it != geometries.end();it++){
 		Geometry* geom = *it;
 		memcpy(ptrVertices,geom->getVertices(),sizeof(GLfloat)*geom->getNumVertices());
@@ -438,12 +448,8 @@ GLuint* Renderer::createGeometryBuffers(Scene* scene){
 		ptrNormals += geom->getNumNormals();
 		memcpy(ptrElements,geom->getElements(),sizeof(GLushort)*geom->getNumElements());
 		ptrElements += geom->getNumElements();
-		for(int j=0; j< geom->getNumVertices()/3;j++){
-			ptrDrawID[j]= i;
-		}
-		ptrDrawID += geom->getNumVertices()/3;
-		i++;
 	}
+
 	buffers[VERTICES] = this->makeBuffer(
 		GL_ARRAY_BUFFER,
 		vertices,
@@ -459,11 +465,6 @@ GLuint* Renderer::createGeometryBuffers(Scene* scene){
 		elements,
 		sizeof(GLushort)*totalNumElements
 	);
-	buffers[DRAWID] = this->makeBuffer(
-		GL_ARRAY_BUFFER,
-		drawID,
-		sizeof(GLushort)*totalNumVertices/3
-	);
 
 	/*delete vertices;
 	delete normals;
@@ -472,18 +473,18 @@ GLuint* Renderer::createGeometryBuffers(Scene* scene){
 }
 
 GLuint* Renderer::createObjectBuffers(Scene* scene){
-	GLuint* buffers = new GLuint[3];
+	GLuint* buffers = new GLuint[4];
 	list<Object3D*> objectList = scene->getObjects();
 	list<Object3D*>::iterator it = objectList.begin();
 	int size = objectList.size();
-
+	GLushort * drawID = new GLushort[size];
 	GLfloat* matrices = new GLfloat[size * 16];
 	GLfloat* ptrMatrices = matrices;
 	struct bufferIndices* indices = new struct bufferIndices[size];
 	struct bufferIndices* ptrIndices = indices;
 	struct indirect* indirects = new struct indirect[size];
 	struct indirect* ptrIndirects = indirects;
-	for(;it != objectList.end();it++){
+	for(int i=0;it != objectList.end();it++){
 		(*it)->updateModelMatrix();
 		GLfloat* mat = (*it)->getModelMatrix()->getElements();
 		memcpy(ptrMatrices,mat, sizeof(GLfloat)*16);
@@ -498,9 +499,29 @@ GLuint* Renderer::createObjectBuffers(Scene* scene){
 		ptrIndirects->instanceCount =1;
 		ptrIndirects->firstIndex = ((Mesh*)(*it))->getGeometry()->getSceneIndicesOffset();
 		ptrIndirects->baseVertex = ((Mesh*)(*it))->getGeometry()->getSceneVerticesOffset()/3;
-		ptrIndirects->baseInstance= 0;
+		ptrIndirects->baseInstance= i;
 		ptrIndirects++;
-		
+		drawID[i]=i;
+		i++;
+	}
+	for(int i = 0; i < size ; i++){
+		printf("Object %d\n", i);
+		printf("\tMatrix:\n");
+		for (int j=0;j < 4 ;j++){
+			printf("\t");
+			for(int k =0; k < 4 ; k++){
+				printf("%1.2f ",matrices[16*i + j*4 +k] );
+			}
+			printf("\n");
+		}
+		printf("index:\n");
+		printf("\tmaterialIndex: %d\n",indices[i].materialIndex);
+		printf("drawCommand:\n");
+		printf("\tcount: %d\n",indirects[i].count);
+		printf("\tinstanceCount: %d\n",indirects[i].instanceCount);
+		printf("\tfirstIndex: %d\n",indirects[i].firstIndex);
+		printf("\tbaseVertex: %d\n",indirects[i].baseVertex);
+		printf("\tbaseInstance: %d\n",indirects[i].baseInstance);
 	}
 
 	buffers[MODEL_MATRIX] = this->makeBuffer(
@@ -531,6 +552,12 @@ GLuint* Renderer::createObjectBuffers(Scene* scene){
 		GL_DRAW_INDIRECT_BUFFER,
 		indirects,
 		sizeof(struct indirect)*size
+	);
+
+	buffers[DRAWID] = this->makeBuffer(
+		GL_ARRAY_BUFFER,
+		drawID,
+		sizeof(GLushort)*size
 	);
 	/*delete[] matrices;
 	delete[] indirects;
@@ -575,7 +602,6 @@ void Renderer::renderMultiDraw(Scene* scene){
 		this->buffers->vertexBuffer = buf[VERTICES];
 		this->buffers->elementBuffer = buf[ELEMENTS];
 		this->buffers->normalBuffer = buf[NORMALS];
-		this->buffers->drawIDBuffer = buf[DRAWID];
 		delete[] buf;
 	}
 
@@ -584,6 +610,7 @@ void Renderer::renderMultiDraw(Scene* scene){
 		this->buffers->bufferIndices = buf[BUFFER_INDICES];
 		this->buffers->indirectBuffer = buf[INDIRECT];
 		this->buffers->modelMatrices = buf[MODEL_MATRIX];
+		this->buffers->drawIDBuffer = buf[DRAWID];
 		delete[] buf;
 	}
 
@@ -619,14 +646,14 @@ void Renderer::renderMultiDraw(Scene* scene){
 	//set drawID attribute
 
 	glBindBuffer(GL_ARRAY_BUFFER,this->buffers->drawIDBuffer);
-	glVertexAttribPointer(
+	glVertexAttribIPointer(
 		program->getAttrDrawID(),//attribute from prgram(position)
 		1,//number of components per vertex
 		GL_UNSIGNED_SHORT,//type of data
-		GL_FALSE,//normalized
-		0,//separation between 2 values
+		sizeof(GLushort),//separation between two values
 		(void*)0 //offset
 	);
+	glVertexAttribDivisor(program->getAttrDrawID(), 1);
 	glEnableVertexAttribArray(program->getAttrDrawID());
 	
 	glUseProgram(program->getProgram());

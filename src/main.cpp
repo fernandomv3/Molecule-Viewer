@@ -256,9 +256,16 @@ int main(int argc, char** argv){
 	geom->loadDataFromFile("icosphere.mesh");
 	Material* mat = new PhongMaterial();
 	Material* cylMaterial = new PhongMaterial();
+	cylMaterial->getDiffuseColor()->setRGB(0,0,1);
+	cylMaterial->getSpecularColor()->setRGB(0.5,0.5,0.5);
+	cylMaterial->setShininess(1000);
+	mat->getDiffuseColor()->setRGB(1,0,0);
+	mat->getSpecularColor()->setRGB(0.6,0.6,0.6);
+	mat->setShininess(2000);
 	Geometry* cylGeom = new Geometry();
 	cylGeom->loadDataFromFile("cylinder.mesh");
 	Mesh* cylinder = new Mesh(cylGeom,cylMaterial);
+	//cylinder->getPosition()->setY(2.0);
 	Mesh* sphere = new Mesh(geom,mat);
 	scene->addObject((Object3D*)cylinder);
 	scene->addObject((Object3D*)sphere);

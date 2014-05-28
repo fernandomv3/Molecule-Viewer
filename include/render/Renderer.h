@@ -26,7 +26,7 @@ struct indirect{
     GLuint  count;
     GLuint  instanceCount;
     GLuint  firstIndex;
-    GLuint  baseVertex;
+    GLint   baseVertex;
     GLuint  baseInstance;
 };
 
@@ -46,8 +46,8 @@ struct bufferObjects{
 	GLuint drawIDBuffer;
 };
 
-enum {VERTICES,NORMALS,ELEMENTS,DRAWID};
-enum {MODEL_MATRIX,BUFFER_INDICES,INDIRECT};
+enum {VERTICES,NORMALS,ELEMENTS};
+enum {MODEL_MATRIX,BUFFER_INDICES,INDIRECT,DRAWID};
 
 typedef struct bufferObjects* BufferObjects;
 
