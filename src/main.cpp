@@ -265,7 +265,7 @@ int main(int argc, char** argv){
 	Geometry* cylGeom = new Geometry();
 	cylGeom->loadDataFromFile("cylinder.mesh");
 	Mesh* cylinder = new Mesh(cylGeom,cylMaterial);
-	//cylinder->getPosition()->setY(2.0);
+	cylinder->getPosition()->setY(2.0);
 	Mesh* sphere = new Mesh(geom,mat);
 	scene->addObject((Object3D*)cylinder);
 	scene->addObject((Object3D*)sphere);

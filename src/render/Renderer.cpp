@@ -392,12 +392,12 @@ GLuint Renderer::createMaterialBuffer(Scene* scene){
 			(*it)->makePrograms(scene);
 		}
 	}
-	for(int i=0; i < numMaterials;i++){
+	/*for(int i=0; i < numMaterials;i++){
 		printf("Material %d\n",i );
 		printf("\tDiffuse color: %f %f %f\n",materialList[i].diffuseColor[0],materialList[i].diffuseColor[1],materialList[i].diffuseColor[2]);
 		printf("\tSpecular color: %f %f %f\n",materialList[i].specularColor[0],materialList[i].specularColor[1],materialList[i].specularColor[2]);
 		printf("\tShininess: %f\n",materialList[i].shininess);
-	}
+	}*/
 	GLuint ubo = makeUBO((void*)materialList, numMaterials * sizeof(struct materialStruct));
 	glBindBufferRange(
 		GL_UNIFORM_BUFFER,//target
@@ -406,27 +406,27 @@ GLuint Renderer::createMaterialBuffer(Scene* scene){
 		0,//offset
 		numMaterials * sizeof(struct materialStruct)//size in bytes
 	);
-	//delete[] materialList;
+	delete[] materialList;
 	return ubo;
 }
 
 GLuint* Renderer::createGeometryBuffers(Scene* scene){
 	GLuint* buffers = new GLuint[3];
 	list<Geometry*> geometries= scene->getGeometries();
-	printf("Num geometries: %d\n", geometries.size());
+	//printf("Num geometries: %d\n", geometries.size());
 	list<Geometry*>::iterator it = geometries.begin();
 	int totalNumElements=0;
 	int totalNumVertices=0;
 	int totalNumNormals=0;
 	for(int i=0;it != geometries.end();it++){
-		printf("Geomerty %d:\n",i);
 		(*it)->setSceneIndicesOffset(totalNumElements);
 		(*it)->setSceneVerticesOffset(totalNumVertices);
+		/*printf("Geomerty %d:\n",i);
 		printf("\tnumElements: %d\n",(*it)->getNumElements());
 		printf("\tElementsOffset: %d\n",totalNumElements);
 		printf("\tnumVertices: %d\n",(*it)->getNumVertices());
 		printf("\tVerticesOffset: %d\n",totalNumVertices);
-		printf("\tnumNormals: %d\n",(*it)->getNumNormals());
+		printf("\tnumNormals: %d\n",(*it)->getNumNormals());*/
 		totalNumElements += (*it)->getNumElements();
 		totalNumVertices += (*it)->getNumVertices();
 		totalNumNormals += (*it)->getNumNormals();
@@ -466,9 +466,9 @@ GLuint* Renderer::createGeometryBuffers(Scene* scene){
 		sizeof(GLushort)*totalNumElements
 	);
 
-	/*delete vertices;
+	delete vertices;
 	delete normals;
-	delete elements;*/
+	delete elements;
 	return buffers;
 }
 
@@ -486,7 +486,9 @@ GLuint* Renderer::createObjectBuffers(Scene* scene){
 	struct indirect* ptrIndirects = indirects;
 	for(int i=0;it != objectList.end();it++){
 		(*it)->updateModelMatrix();
-		GLfloat* mat = (*it)->getModelMatrix()->getElements();
+		Mat4* traspose = (*it)->getModelMatrix()->getTraspose(); 
+		GLfloat* mat = traspose->getElements();
+		delete traspose;
 		memcpy(ptrMatrices,mat, sizeof(GLfloat)*16);
 		ptrMatrices += 16;
 		delete[] mat;
@@ -504,7 +506,7 @@ GLuint* Renderer::createObjectBuffers(Scene* scene){
 		drawID[i]=i;
 		i++;
 	}
-	for(int i = 0; i < size ; i++){
+	/*for(int i = 0; i < size ; i++){
 		printf("Object %d\n", i);
 		printf("\tMatrix:\n");
 		for (int j=0;j < 4 ;j++){
@@ -522,7 +524,7 @@ GLuint* Renderer::createObjectBuffers(Scene* scene){
 		printf("\tfirstIndex: %d\n",indirects[i].firstIndex);
 		printf("\tbaseVertex: %d\n",indirects[i].baseVertex);
 		printf("\tbaseInstance: %d\n",indirects[i].baseInstance);
-	}
+	}*/
 
 	buffers[MODEL_MATRIX] = this->makeBuffer(
 		GL_UNIFORM_BUFFER,
@@ -559,9 +561,9 @@ GLuint* Renderer::createObjectBuffers(Scene* scene){
 		drawID,
 		sizeof(GLushort)*size
 	);
-	/*delete[] matrices;
+	delete[] matrices;
 	delete[] indirects;
-	delete[] indices;*/
+	delete[] indices;
 	return buffers;
 }
 
@@ -662,7 +664,6 @@ void Renderer::renderMultiDraw(Scene* scene){
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,this->buffers->elementBuffer);
 	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, this->buffers->indirectBuffer);
-	//printf("size %d\n", scene->getObjects().size());
 	glMultiDrawElementsIndirect(GL_TRIANGLES,GL_UNSIGNED_SHORT,(void*)0,scene->getObjects().size(),0);
 
 	glDisableVertexAttribArray(program->getAttrPosition());
@@ -676,7 +677,9 @@ void Renderer::updateModelMatrices(GLuint modelMatricesBuffer,list<Object3D*> ob
 	GLfloat* ptrMatrices= matrices;
 	for(;it!= objects.end();it++){
 		(*it)->updateModelMatrix();
-		GLfloat* mat = (*it)->getModelMatrix()->getElements();
+		Mat4* traspose = (*it)->getModelMatrix()->getTraspose();
+		GLfloat* mat = traspose->getElements();
+		delete traspose;
 		memcpy(ptrMatrices,mat, sizeof(GLfloat)*16);
 		ptrMatrices += 16;
 		delete[] mat;
