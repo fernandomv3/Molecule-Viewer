@@ -72,7 +72,7 @@ public:
 	GLuint createMaterialBuffer(Scene* scene);
 	GLuint* createObjectBuffers(Scene* scene);
 	void renderMultiDraw(Scene* scene);
-	void updateModelMatrices(GLuint modelMatricesBuffer,list<Object3D*> objects);
+	void updateModelMatrices(GLuint modelMatricesBuffer,GLuint indirectBuffer,list<Object3D*> objects);
 };
 
 #endif

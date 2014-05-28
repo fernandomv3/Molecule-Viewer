@@ -660,7 +660,7 @@ void Renderer::renderMultiDraw(Scene* scene){
 	
 	glUseProgram(program->getProgram());
 
-	this->updateModelMatrices(this->buffers->modelMatrices,scene->getObjects());
+	this->updateModelMatrices(this->buffers->modelMatrices,this->buffers->indirectBuffer,scene->getObjects());
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,this->buffers->elementBuffer);
 	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, this->buffers->indirectBuffer);
@@ -670,22 +670,40 @@ void Renderer::renderMultiDraw(Scene* scene){
 	glDisableVertexAttribArray(program->getAttrNormal());
 }
 
-void Renderer::updateModelMatrices(GLuint modelMatricesBuffer,list<Object3D*> objects){
+void Renderer::updateModelMatrices(GLuint modelMatricesBuffer,GLuint indirectBuffer,list<Object3D*> objects){
 	list<Object3D*>::iterator it = objects.begin();
 	int size = objects.size();
 	GLfloat* matrices = new GLfloat[size *16];
+	struct indirect* indirects = new struct indirect[size];
 	GLfloat* ptrMatrices= matrices;
-	for(;it!= objects.end();it++){
-		(*it)->updateModelMatrix();
-		Mat4* traspose = (*it)->getModelMatrix()->getTraspose();
-		GLfloat* mat = traspose->getElements();
-		delete traspose;
-		memcpy(ptrMatrices,mat, sizeof(GLfloat)*16);
+	struct indirect* ptrIndirects= indirects;
+	for(int i=0;it!= objects.end();it++,i++){
+		if((*it)->getVisible()){
+			ptrIndirects->count = ((Mesh*)(*it))->getGeometry()->getNumElements();
+			ptrIndirects->instanceCount =1;
+			(*it)->updateModelMatrix();
+			Mat4* traspose = (*it)->getModelMatrix()->getTraspose();
+			GLfloat* mat = traspose->getElements();
+			delete traspose;
+			memcpy(ptrMatrices,mat, sizeof(GLfloat)*16);
+			delete[] mat;	
+		}
+		else{
+			//ptrIndirects->count = 0;
+			ptrIndirects->instanceCount =0;
+		}
+		ptrIndirects->firstIndex = ((Mesh*)(*it))->getGeometry()->getSceneIndicesOffset();
+		ptrIndirects->baseVertex = ((Mesh*)(*it))->getGeometry()->getSceneVerticesOffset()/3;
+		ptrIndirects->baseInstance= i;
+		ptrIndirects++;
 		ptrMatrices += 16;
-		delete[] mat;
 	}
 	glBindBuffer(GL_UNIFORM_BUFFER,modelMatricesBuffer);
 	glBufferSubData(GL_UNIFORM_BUFFER,0,size*sizeof(GLfloat)*16,matrices);
 	glBindBuffer(GL_UNIFORM_BUFFER,0);
+	delete[] matrices;
+	glBindBuffer(GL_DRAW_INDIRECT_BUFFER,indirectBuffer);
+	glBufferSubData(GL_DRAW_INDIRECT_BUFFER,0,size*sizeof(struct indirect),indirects);
+	delete[] indirects;
 
 }
