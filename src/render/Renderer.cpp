@@ -12,11 +12,11 @@ Renderer::Renderer(){
 	this->buffers=NULL;
 }
 
-GLuint Renderer::makeBuffer(GLenum target, void* bufferData, GLsizei bufferSize){
+GLuint Renderer::makeBuffer(GLenum target, void* bufferData, GLsizei bufferSize, GLenum usage){
 	GLuint buffer;
 	glGenBuffers(1,&buffer);
 	glBindBuffer(target,buffer);
-	glBufferData(target,bufferSize,bufferData, GL_STATIC_DRAW);
+	glBufferData(target,bufferSize,bufferData, usage);
 	return buffer;
 }
 GLuint Renderer::makeUBO(void* bufferData, GLsizei bufferSize){
@@ -398,7 +398,11 @@ GLuint Renderer::createMaterialBuffer(Scene* scene){
 		printf("\tSpecular color: %f %f %f\n",materialList[i].specularColor[0],materialList[i].specularColor[1],materialList[i].specularColor[2]);
 		printf("\tShininess: %f\n",materialList[i].shininess);
 	}*/
-	GLuint ubo = makeUBO((void*)materialList, numMaterials * sizeof(struct materialStruct));
+	GLuintubo = this->makeBuffer(
+		GL_UNIFORM_BUFFER,
+		materialList,
+		numMaterials * sizeof(struct materialStruct),
+	);
 	glBindBufferRange(
 		GL_UNIFORM_BUFFER,//target
 		MATERIALS_UBI,//binding point
@@ -529,7 +533,8 @@ GLuint* Renderer::createObjectBuffers(Scene* scene){
 	buffers[MODEL_MATRIX] = this->makeBuffer(
 		GL_SHADER_STORAGE_BUFFER,
 		matrices,
-		sizeof(GLfloat)*size*16
+		sizeof(GLfloat)*size*16,
+		GL_STREAM_DRAW
 	);
 	glBindBufferRange(
 		GL_SHADER_STORAGE_BUFFER,//target
@@ -553,7 +558,8 @@ GLuint* Renderer::createObjectBuffers(Scene* scene){
 	buffers[INDIRECT] = this->makeBuffer(
 		GL_DRAW_INDIRECT_BUFFER,
 		indirects,
-		sizeof(struct indirect)*size
+		sizeof(struct indirect)*size,
+		GL_STREAM_DRAW
 	);
 
 	buffers[DRAWID] = this->makeBuffer(

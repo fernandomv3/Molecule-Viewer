@@ -63,7 +63,7 @@ private:
 public:
 	Renderer();
 	void render(Scene* scene);
-	GLuint makeBuffer(GLenum target, void* bufferData, GLsizei bufferSize);
+	GLuint makeBuffer(GLenum target, void* bufferData, GLsizei bufferSize,GLenum usage = GL_STATIC_DRAW);
 	GLuint makeUBO(void* bufferData, GLsizei bufferSize);
 	GLuint makePointBuffer(GLenum target, void* bufferData, GLsizei bufferSize);
 	void renderOctreeNode(OctreeNode* node,Scene* scene);
