@@ -7,7 +7,7 @@
 #include "material/PointMaterial.h"
 #include <cstdio>
 
-Renderer::Renderer(){
+Renderer::Renderer(): geometryGroups(NUM_MATERIAL_TYPES){
 	this->vao=0;
 	this->buffers=NULL;
 }
@@ -398,10 +398,10 @@ GLuint Renderer::createMaterialBuffer(Scene* scene){
 		printf("\tSpecular color: %f %f %f\n",materialList[i].specularColor[0],materialList[i].specularColor[1],materialList[i].specularColor[2]);
 		printf("\tShininess: %f\n",materialList[i].shininess);
 	}*/
-	GLuintubo = this->makeBuffer(
+	GLuint ubo = this->makeBuffer(
 		GL_UNIFORM_BUFFER,
 		materialList,
-		numMaterials * sizeof(struct materialStruct),
+		numMaterials * sizeof(struct materialStruct)
 	);
 	glBindBufferRange(
 		GL_UNIFORM_BUFFER,//target
@@ -499,6 +499,7 @@ GLuint* Renderer::createObjectBuffers(Scene* scene){
 
 		ptrIndices->materialIndex = ((Mesh*)(*it))->getMaterial()->getSceneIndex();
 		ptrIndices->visible = (GLuint)(((Mesh*)(*it))->getOctreeNode()->isVisible());
+		ptrIndices->distanceToCamera = 31;
 		ptrIndices++;
 
 		ptrIndirects->count = ((Mesh*)(*it))->getGeometry()->getNumElements();
@@ -679,10 +680,9 @@ void Renderer::renderMultiDraw(Scene* scene){
 void Renderer::updateModelMatrices(GLuint modelMatricesBuffer,GLuint indirectBuffer,list<Object3D*> objects){
 	list<Object3D*>::iterator it = objects.begin();
 	int size = objects.size();
-	GLfloat* matrices = new GLfloat[size *16];
 	struct indirect* indirects = new struct indirect[size];
-	GLfloat* ptrMatrices= matrices;
 	struct indirect* ptrIndirects= indirects;
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER,modelMatricesBuffer);
 	for(int i=0;it!= objects.end();it++,i++){
 		if((*it)->getVisible()){
 			ptrIndirects->count = ((Mesh*)(*it))->getGeometry()->getNumElements();
@@ -691,23 +691,18 @@ void Renderer::updateModelMatrices(GLuint modelMatricesBuffer,GLuint indirectBuf
 			Mat4* traspose = (*it)->getModelMatrix()->getTraspose();
 			GLfloat* mat = traspose->getElements();
 			delete traspose;
-			memcpy(ptrMatrices,mat, sizeof(GLfloat)*16);
+			glBufferSubData(GL_SHADER_STORAGE_BUFFER,sizeof(GLfloat)*16*i,sizeof(GLfloat)*16,mat);
 			delete[] mat;	
 		}
 		else{
-			//ptrIndirects->count = 0;
 			ptrIndirects->instanceCount =0;
 		}
 		ptrIndirects->firstIndex = ((Mesh*)(*it))->getGeometry()->getSceneIndicesOffset();
 		ptrIndirects->baseVertex = ((Mesh*)(*it))->getGeometry()->getSceneVerticesOffset()/3;
 		ptrIndirects->baseInstance= i;
 		ptrIndirects++;
-		ptrMatrices += 16;
 	}
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER,modelMatricesBuffer);
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER,0,size*sizeof(GLfloat)*16,matrices);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER,0);
-	delete[] matrices;
 	glBindBuffer(GL_DRAW_INDIRECT_BUFFER,indirectBuffer);
 	glBufferSubData(GL_DRAW_INDIRECT_BUFFER,0,size*sizeof(struct indirect),indirects);
 	delete[] indirects;

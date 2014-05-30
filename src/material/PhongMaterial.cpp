@@ -8,7 +8,6 @@ PhongMaterial::PhongMaterial():Material(){
 	this->type = PHONG_MATERIAL;
 	this->vertexShaderSource= strdup(
 		"#version 440 core\n\
-		#extension GL_ARB_shader_draw_parameters : enable\n\
 		#define NUM_OBJECTS %d\n\
 		layout(std430) buffer modelMatrices{\n\
 			mat4 modelMatrix[NUM_OBJECTS];\n\
@@ -34,7 +33,6 @@ PhongMaterial::PhongMaterial():Material(){
 		}");
     this->fragmentShaderSource=strdup(
     	"#version 440 core\n\
-    	#extension GL_ARB_shader_draw_parameters : enable\n\
     	#define NUM_OBJECTS %d\n\
     	#define NUM_MATERIALS %d\n\
     	#define MAX_DIR_LIGHTS %d\n\
@@ -79,6 +77,7 @@ PhongMaterial::PhongMaterial():Material(){
 		struct Indices{\n\
 			int materialIndex;\n\
 			int visible;\n\
+			float distanceToCamera;\n\
 		};\n\
 		layout(std140) uniform materialIndices{\n\
 			Indices index[NUM_OBJECTS];\n\

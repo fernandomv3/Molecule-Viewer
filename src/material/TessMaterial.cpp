@@ -2,34 +2,48 @@
 #include <string.h>
 #include <cassert>
 #include <stdio.h>
+#include "scene/Scene.h"
 
 TessMaterial::TessMaterial():Material(){
 	this->type = TESS_MATERIAL;
 	this->vertexShaderSource= strdup(
-		"#version 410\n\
+		"#version 440 core\n\
+		#define NUM_OBJECTS %d\n\
 		in vec3 normal;\n\
 		in vec3 position;\n\
+		in int drawID;\n\
 		out vec3 vNormal;\n\
 		out vec3 vPos;\n\
-		uniform mat4 modelMatrix;\n\
+		flat out int vDrawID;\n\
 		void main(){\n\
 			vPos = position;\n\
 			vNormal = normal;\n\
 		}");
 	this->tessControlShaderSource = strdup(
-		"#version 410\n\
+		"#version 440\n\
+		#define NUM_OBJECTS %d\n\
 		layout(vertices = 3) out;\n\
 		in vec3 vNormal[];\n\
 		in vec3 vPos[];\n\
+		flat in int vDrawID;\n\
+		flat out int tcDrawID;\n\
 		out vec3 tcPos[];\n\
 		out vec3 tcNormal[];\n\
-		uniform float distanceToCamera;\n\
+		struct Indices{\n\
+			int materialIndex;\n\
+			int visible;\n\
+			float distanceToCamera;\n\
+		};\n\
+		layout(std140) uniform materialIndices{\n\
+			Indices index[NUM_OBJECTS];\n\
+		};\n\
 		\n\
 		#define ID gl_InvocationID\n\
 		\n\
 		void main(){\n\
 			tcPos[ID] = vPos[ID];\n\
 			tcNormal[ID] = vNormal[ID];\n\
+			float distanceToCamera = materialIndices[vDrawID].distanceToCamera;\n\
 			if(ID ==0){\n\
 				int inner = 1;\n\
 				int outer = 1;\n\
@@ -57,13 +71,18 @@ TessMaterial::TessMaterial():Material(){
 		}\n\
 		");
 	this->tessEvaluationShaderSource= strdup(
-		"#version 410\n\
+		"#version 440\n\
+		#define NUM_OBJECTS %d\n\
 		layout(triangles, equal_spacing, ccw) in;\n\
 		in vec3 tcPos[];\n\
 		in vec3 tcNormal[];\n\
+		flat in int tcDrawID;\n\
+		flat out int teDrawID;\n\
 		out vec4 tePos;\n\
 		out vec4 teNormal;\n\
-		uniform mat4 modelMatrix;\n\
+		layout(std430) buffer modelMatrices{\n\
+			mat4 modelMatrix[NUM_OBJECTS];\n\
+		};\n\
 		layout(std140) uniform globalMatrices{\n\
 			mat4 worldMatrix;\n\
 			mat4 projectionMatrix;\n\
@@ -78,11 +97,13 @@ TessMaterial::TessMaterial():Material(){
 			vec3 n2 = gl_TessCoord.z * tcNormal[2];\n\
 			tePos = vec4(normalize(p0+p1+p2),1.0);\n\
 			vec3 n = normalize(n0+n1+n2);\n\
-			teNormal = worldMatrix * modelMatrix * vec4(n,0.0);\n\
-			gl_Position = projectionMatrix * worldMatrix * modelMatrix * tePos;\n\
+			teNormal = worldMatrix * modelMatrix[tcDrawID] * vec4(n,0.0);\n\
+			gl_Position = projectionMatrix * worldMatrix * modelMatrix[tcDrawID] * tePos;\n\
 		}");
     this->fragmentShaderSource=strdup(
-    	"#version 410\n\
+    	"#version 440\n\
+    	#define NUM_OBJECTS %d\n\
+    	#define NUM_MATERIALS %d\n\
     	#define MAX_DIR_LIGHTS %d\n\
 		#define MAX_P_LIGHTS %d\n\
 		#if MAX_DIR_LIGHTS > 0\n\
@@ -122,9 +143,20 @@ TessMaterial::TessMaterial():Material(){
 			vec4 ambientLight;\n\
 		};\n\
 		\n\
-		uniform Material material;\n\
+		struct Indices{\n\
+			int materialIndex;\n\
+			int visible;\n\
+			float distanceToCamera;\n\
+		};\n\
+		layout(std140) uniform materialIndices{\n\
+			Indices index[NUM_OBJECTS];\n\
+		};\n\
+		layout(std140) uniform materials{\n\
+			Material material[NUM_MATERIALS];\n\
+		};\n\
     	in vec4 teNormal;\n\
 		in vec4 tePos;\n\
+		flat in int teDrawID;\n\
     	out vec4 outputColor;\n\
     	#if MAX_P_LIGHTS > 0\n\
     	vec4 attenuateLight(in vec4 color, in float attenuation, in vec4 vectorToLight){\n\
@@ -159,8 +191,8 @@ TessMaterial::TessMaterial():Material(){
 				float cosAngIncidence;\n\
 				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,normal,viewDirection,material.shininess,cosAngIncidence);\n\
 				\n\
-            	outputColor = outputColor + (dirLights[i].color * material.diffuseColor * cosAngIncidence);\n\
-            	outputColor = outputColor + (material.specularColor * blinnPhongTerm);\n\
+            	outputColor = outputColor + (dirLights[i].color * material[index[teDrawID].materialIndex].diffuseColor * cosAngIncidence);\n\
+            	outputColor = outputColor + (material[index[teDrawID].materialIndex].specularColor * blinnPhongTerm);\n\
 			}\n\
 			#endif\n\
 			#if MAX_P_LIGHTS > 0\n\
@@ -172,23 +204,27 @@ TessMaterial::TessMaterial():Material(){
 				float cosAngIncidence;\n\
 				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,normal,viewDirection,material.shininess,cosAngIncidence);\n\
 				\n\
-            	outputColor = outputColor + (attenLightIntensity * material.diffuseColor * cosAngIncidence);\n\
-            	outputColor = outputColor + (material.specularColor * attenLightIntensity * blinnPhongTerm);\n\
+            	outputColor = outputColor + (attenLightIntensity * material[index[teDrawID].materialIndex].diffuseColor * cosAngIncidence);\n\
+            	outputColor = outputColor + (material[index[teDrawID].materialIndex].specularColor * attenLightIntensity * blinnPhongTerm);\n\
 			}\n\
 			#endif\n\
-            outputColor = outputColor + (material.diffuseColor * ambientLight);\n\
+            outputColor = outputColor + (material[index[teDrawID].materialIndex].diffuseColor * ambientLight);\n\
     	}");
 }
-void TessMaterial::makePrograms(int numDirLights,int numPointLights){
+void TessMaterial::makePrograms(Scene* scene){
 	this->program = new GLProgram();
-	char* vs = this->configureSource(this->vertexShaderSource,numDirLights,numPointLights);
-	char* fs = this->configureSource(this->fragmentShaderSource,numDirLights,numPointLights);
+	char* vs = this->configureSource(this->vertexShaderSource,scene->getDirectionalLights().size(),scene->getPointLights().size());
+	char* fs = this->configureSource(this->fragmentShaderSource,scene->getDirectionalLights().size(),scene->getPointLights().size(),scene->getObjects().size(),scene->getGeometries().size());
+	char* tcs = this->configureSource(this->tessControlShaderSource,scene->getDirectionalLights().size(),scene->getPointLights().size(),scene->getObjects().size(),scene->getGeometries().size());
+	char* tes = this->configureSource(this->tessEvaluationShaderSource,scene->getDirectionalLights().size(),scene->getPointLights().size(),scene->getObjects().size(),scene->getGeometries().size());
 	GLuint vertexShader = this->program->compileShader(GL_VERTEX_SHADER,vs);
 	delete vs;
 	GLuint fragmentShader = this->program->compileShader(GL_FRAGMENT_SHADER,fs);
 	delete fs;
-	GLuint tessControlShader = this->program->compileShader(GL_TESS_CONTROL_SHADER,this->tessControlShaderSource);
-	GLuint tessEvaluationShader = this->program->compileShader(GL_TESS_EVALUATION_SHADER,this->tessEvaluationShaderSource);
+	GLuint tessControlShader = this->program->compileShader(GL_TESS_CONTROL_SHADER,tcs);
+	delete tcs;
+	GLuint tessEvaluationShader = this->program->compileShader(GL_TESS_EVALUATION_SHADER,tes);
+	delete tes;
 	this->program->setVertexShader(vertexShader);
 	this->program->setFragmentShader(fragmentShader);
 	this->program->setTessControlShader(tessControlShader);
@@ -197,11 +233,13 @@ void TessMaterial::makePrograms(int numDirLights,int numPointLights){
 	this->program->setProgram(prog);
 	this->program->setAttrPosition(glGetAttribLocation(prog, "position"));
 	this->program->setAttrNormal(glGetAttribLocation(prog, "normal"));
-	this->program->getUniforms()->unifModelMatrix = glGetUniformLocation(prog,"modelMatrix");
-	this->program->getUniforms()->unifDiffuseColor = glGetUniformLocation(prog,"material.diffuseColor");
-	this->program->getUniforms()->unifSpecularColor = glGetUniformLocation(prog,"material.specularColor");
-	this->program->getUniforms()->unifShininess = glGetUniformLocation(prog,"material.shininess");
-	this->program->getUniforms()->unifDistanceToCamera = glGetUniformLocation(prog,"distanceToCamera");
+	this->program->setAttrDrawID(glGetAttribLocation(prog, "drawID"));
+	this->program->getUniforms()->unifModelMatrix =  glGetProgramResourceIndex(prog,GL_SHADER_STORAGE_BLOCK,"modelMatrices");
+	glShaderStorageBlockBinding(prog, this->program->getUniforms()->unifModelMatrix,MODEL_MATRICES_UBI);
+	this->program->getUniforms()->unifMaterial = glGetUniformBlockIndex(prog,"materials");
+	glUniformBlockBinding(prog, this->program->getUniforms()->unifMaterial,MATERIALS_UBI);
+	this->program->getUniforms()->unifIndices = glGetUniformBlockIndex(prog,"materialIndices");
+	glUniformBlockBinding(prog, this->program->getUniforms()->unifIndices,INDICES_UBI);
 	this->program->getUniforms()->unifBlockMatrices = glGetUniformBlockIndex(prog,"globalMatrices");
 	glUniformBlockBinding(prog, this->program->getUniforms()->unifBlockMatrices,GLOBAL_MATRICES_UBI);
 	this->program->getUniforms()->unifBlockDirectionalLights = glGetUniformBlockIndex(prog,"directionalLights");

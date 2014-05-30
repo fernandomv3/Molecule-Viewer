@@ -5,6 +5,10 @@
 #include "light/DirectionalLight.h"
 #include "material/Material.h"
 #include "scene/OctreeNode.h"
+#include <vector>
+#include <list>
+
+using namespace std;
 
 struct dirLightsChunk{
   struct dirLight lights[10];
@@ -19,7 +23,8 @@ struct pLightsChunk{
 struct bufferIndices{
 	GLuint materialIndex;
 	GLuint visible;
-	GLuint stride[2];
+	GLfloat distanceToCamera; 
+	GLuint stride;
 };
 
 struct indirect{
@@ -54,7 +59,9 @@ typedef struct bufferObjects* BufferObjects;
 class Renderer{
 private:
 	GLuint vao;
+	//BufferObjects buffers[NUM_MATERIAL_TYPES];
 	BufferObjects buffers;
+	vector<list<Object3D*> > geometryGroups;
 	GLuint calculateGlobalMatrices(Scene* scene);
 	GLuint calculateDirectionalLights(Scene* scene);
 	GLuint calculateAmbientLights(Scene* scene);
