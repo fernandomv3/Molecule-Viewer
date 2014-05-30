@@ -7,9 +7,11 @@
 #include "material/PointMaterial.h"
 #include <cstdio>
 
-Renderer::Renderer(): geometryGroups(NUM_MATERIAL_TYPES){
+Renderer::Renderer(){
 	this->vao=0;
-	this->buffers=NULL;
+	for(int i = 1 ; i < NUM_MATERIAL_TYPES; i++){
+		this->buffers[i] = NULL;
+	}
 }
 
 GLuint Renderer::makeBuffer(GLenum target, void* bufferData, GLsizei bufferSize, GLenum usage){
@@ -579,6 +581,9 @@ void Renderer::renderMultiDraw(Scene* scene){
 	if(this->vao == 0){
 		glGenVertexArrays(1, &(this->vao));
 		glBindVertexArray(this->vao);
+	}
+	if (this->geometryGroups.size() == 0){
+		
 	}
 	//should be using SSBO
 	if(this->buffers == NULL){

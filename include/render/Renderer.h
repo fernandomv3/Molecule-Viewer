@@ -59,8 +59,7 @@ typedef struct bufferObjects* BufferObjects;
 class Renderer{
 private:
 	GLuint vao;
-	//BufferObjects buffers[NUM_MATERIAL_TYPES];
-	BufferObjects buffers;
+	BufferObjects* buffers[NUM_MATERIAL_TYPES];
 	vector<list<Object3D*> > geometryGroups;
 	GLuint calculateGlobalMatrices(Scene* scene);
 	GLuint calculateDirectionalLights(Scene* scene);
