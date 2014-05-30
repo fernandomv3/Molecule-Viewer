@@ -37,35 +37,41 @@ struct indirect{
 
 struct bufferObjects{
 	MaterialType type;
-	GLuint pointLights;
-	GLuint directionalLights;
-	GLuint globalMatrices;
-	GLuint ambientLight;
-	GLuint materials;
 	GLuint bufferIndices;
 	GLuint modelMatrices;
-	GLuint vertexBuffer;
-	GLuint elementBuffer;
-	GLuint normalBuffer;
 	GLuint indirectBuffer;
 	GLuint drawIDBuffer;
 };
 
+struct globalBufferObjects{
+    GLuint pointLights;
+	GLuint directionalLights;
+	GLuint globalMatrices;
+	GLuint ambientLight;
+	GLuint materials;
+	GLuint vertexBuffer;
+	GLuint elementBuffer;
+	GLuint normalBuffer;
+}
+
 enum {VERTICES,NORMALS,ELEMENTS};
 enum {MODEL_MATRIX,BUFFER_INDICES,INDIRECT,DRAWID};
 
+typedef struct globalBufferObjects* GlobalBufferObjects;
 typedef struct bufferObjects* BufferObjects;
 
 class Renderer{
 private:
 	GLuint vao;
-	BufferObjects* buffers[NUM_MATERIAL_TYPES];
+	BufferObjects buffers[NUM_MATERIAL_TYPES];
+	GlobalBufferObjects globalBuffers;
 	vector<list<Object3D*> > geometryGroups;
 	GLuint calculateGlobalMatrices(Scene* scene);
 	GLuint calculateDirectionalLights(Scene* scene);
 	GLuint calculateAmbientLights(Scene* scene);
 	GLuint calculatePointLights(Scene* scene);
 	void setMaterialUniforms(Material* material, Scene* scene);
+	BufferObjects createEmptyBufferObject();
 public:
 	Renderer();
 	void render(Scene* scene);
