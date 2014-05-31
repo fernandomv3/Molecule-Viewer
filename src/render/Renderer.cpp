@@ -395,12 +395,12 @@ GLuint Renderer::createMaterialBuffer(Scene* scene){
 			(*it)->makePrograms(scene);
 		}
 	}
-	/*for(int i=0; i < numMaterials;i++){
+	for(int i=0; i < numMaterials;i++){
 		printf("Material %d\n",i );
 		printf("\tDiffuse color: %f %f %f\n",materialList[i].diffuseColor[0],materialList[i].diffuseColor[1],materialList[i].diffuseColor[2]);
 		printf("\tSpecular color: %f %f %f\n",materialList[i].specularColor[0],materialList[i].specularColor[1],materialList[i].specularColor[2]);
 		printf("\tShininess: %f\n",materialList[i].shininess);
-	}*/
+	}
 	GLuint ubo = this->makeBuffer(
 		GL_UNIFORM_BUFFER,
 		materialList,
@@ -513,7 +513,7 @@ GLuint* Renderer::createObjectBuffers(list<Object3D*> objectList){
 		drawID[i]=i;
 		i++;
 	}
-	/*for(int i = 0; i < size ; i++){
+	for(int i = 0; i < size ; i++){
 		printf("Object %d\n", i);
 		printf("\tMatrix:\n");
 		for (int j=0;j < 4 ;j++){
@@ -531,7 +531,7 @@ GLuint* Renderer::createObjectBuffers(list<Object3D*> objectList){
 		printf("\tfirstIndex: %d\n",indirects[i].firstIndex);
 		printf("\tbaseVertex: %d\n",indirects[i].baseVertex);
 		printf("\tbaseInstance: %d\n",indirects[i].baseInstance);
-	}*/
+	}
 
 	buffers[MODEL_MATRIX] = this->makeBuffer(
 		GL_SHADER_STORAGE_BUFFER,
@@ -640,65 +640,91 @@ void Renderer::renderMultiDraw(Scene* scene){
 	for (int i=0; i < NUM_MATERIAL_TYPES; i++){
 		if(this->geometryGroups[i].size() == 0)continue;
 		if(this->buffers[i] == NULL) this->buffers[i] = this->createEmptyBufferObject();
-	if(this->buffers[i]->indirectBuffer == 0 ||this->buffers[i]->modelMatrices == 0 || this->buffers[i]->bufferIndices == 0){
-		GLuint* buf = this->createObjectBuffers(geometryGroups[i]);
-		this->buffers[i]->bufferIndices = buf[BUFFER_INDICES];
-		this->buffers[i]->indirectBuffer = buf[INDIRECT];
-		this->buffers[i]->modelMatrices = buf[MODEL_MATRIX];
-		this->buffers[i]->drawIDBuffer = buf[DRAWID];
-		delete[] buf;
+		if(this->buffers[i]->indirectBuffer == 0 ||this->buffers[i]->modelMatrices == 0 || this->buffers[i]->bufferIndices == 0){
+			GLuint* buf = this->createObjectBuffers(geometryGroups[i]);
+			this->buffers[i]->bufferIndices = buf[BUFFER_INDICES];
+			this->buffers[i]->indirectBuffer = buf[INDIRECT];
+			this->buffers[i]->modelMatrices = buf[MODEL_MATRIX];
+			this->buffers[i]->drawIDBuffer = buf[DRAWID];
+			delete[] buf;
+		}
+
+		GLProgram* program = ((Mesh*)(*geometryGroups[i].begin()))->getMaterial()->getProgram();
+		//set vertex attribute
+		glBindBuffer(GL_ARRAY_BUFFER,this->globalBuffers->vertexBuffer);
+		glVertexAttribPointer(
+			program->getAttrPosition(),//attribute from prgram(position)
+			3,//number of components per vertex
+			GL_FLOAT,//type of data
+			GL_FALSE,//normalized
+			0,//separation between 2 values
+			(void*)0 //offset
+		);
+		glEnableVertexAttribArray(program->getAttrPosition());
+
+		//set normal attribute
+
+		glBindBuffer(GL_ARRAY_BUFFER,this->globalBuffers->normalBuffer);
+		glVertexAttribPointer(
+			program->getAttrNormal(),//attribute from prgram(position)
+			3,//number of components per vertex
+			GL_FLOAT,//type of data
+			GL_FALSE,//normalized
+			0,//separation between 2 values
+			(void*)0 //offset
+		);
+		glEnableVertexAttribArray(program->getAttrNormal());
+
+		//set drawID attribute
+
+		glBindBuffer(GL_ARRAY_BUFFER,this->buffers[i]->drawIDBuffer);
+		glVertexAttribIPointer(
+			program->getAttrDrawID(),//attribute from prgram(position)
+			1,//number of components per vertex
+			GL_UNSIGNED_SHORT,//type of data
+			sizeof(GLushort),//separation between two values
+			(void*)0 //offset
+		);
+		glVertexAttribDivisor(program->getAttrDrawID(), 1);
+		glEnableVertexAttribArray(program->getAttrDrawID());
+
+		glUseProgram(program->getProgram());
+
+		this->updateModelMatrices(this->buffers[i]->modelMatrices,this->buffers[i]->indirectBuffer,geometryGroups[i]);
+		glBindBufferRange(
+			GL_UNIFORM_BUFFER,//target
+			INDICES_UBI,//binding point
+			this->buffers[i]->bufferIndices,//data
+			0,//offset
+			sizeof(struct bufferIndices)* geometryGroups[i].size()//size in bytes
+		);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,this->globalBuffers->elementBuffer);
+		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, this->buffers[i]->indirectBuffer);
+
+		if(i == (int)TESS_MATERIAL){
+				glPatchParameteri(GL_PATCH_VERTICES, 3);
+				glMultiDrawElementsIndirect(
+					GL_PATCHES,
+					GL_UNSIGNED_SHORT,
+					(void*)0,
+					geometryGroups[i].size(),
+					0
+				);
+			}
+			else{
+				glMultiDrawElementsIndirect(
+					GL_TRIANGLES,
+					GL_UNSIGNED_SHORT,
+					(void*)0,
+					geometryGroups[i].size(),
+					0
+				);
+			}
+
+		glDisableVertexAttribArray(program->getAttrPosition());
+		glDisableVertexAttribArray(program->getAttrNormal());
 	}
-
-	GLProgram* program = ((Mesh*)(*geometryGroups[i].begin()))->getMaterial()->getProgram();
-	//set vertex attribute
-	glBindBuffer(GL_ARRAY_BUFFER,this->globalBuffers->vertexBuffer);
-	glVertexAttribPointer(
-		program->getAttrPosition(),//attribute from prgram(position)
-		3,//number of components per vertex
-		GL_FLOAT,//type of data
-		GL_FALSE,//normalized
-		0,//separation between 2 values
-		(void*)0 //offset
-	);
-	glEnableVertexAttribArray(program->getAttrPosition());
-
-	//set normal attribute
-
-	glBindBuffer(GL_ARRAY_BUFFER,this->globalBuffers->normalBuffer);
-	glVertexAttribPointer(
-		program->getAttrNormal(),//attribute from prgram(position)
-		3,//number of components per vertex
-		GL_FLOAT,//type of data
-		GL_FALSE,//normalized
-		0,//separation between 2 values
-		(void*)0 //offset
-	);
-	glEnableVertexAttribArray(program->getAttrNormal());
-
-	//set drawID attribute
-
-	glBindBuffer(GL_ARRAY_BUFFER,this->buffers[i]->drawIDBuffer);
-	glVertexAttribIPointer(
-		program->getAttrDrawID(),//attribute from prgram(position)
-		1,//number of components per vertex
-		GL_UNSIGNED_SHORT,//type of data
-		sizeof(GLushort),//separation between two values
-		(void*)0 //offset
-	);
-	glVertexAttribDivisor(program->getAttrDrawID(), 1);
-	glEnableVertexAttribArray(program->getAttrDrawID());
-	
-	glUseProgram(program->getProgram());
-
-	this->updateModelMatrices(this->buffers[i]->modelMatrices,this->buffers[i]->indirectBuffer,geometryGroups[i]);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,this->globalBuffers->elementBuffer);
-	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, this->buffers[i]->indirectBuffer);
-	glMultiDrawElementsIndirect(GL_TRIANGLES,GL_UNSIGNED_SHORT,(void*)0,geometryGroups[i].size(),0);
-
-	glDisableVertexAttribArray(program->getAttrPosition());
-	glDisableVertexAttribArray(program->getAttrNormal());
-}
 }
 
 void Renderer::updateModelMatrices(GLuint modelMatricesBuffer,GLuint indirectBuffer,list<Object3D*> objects){

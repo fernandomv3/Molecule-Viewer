@@ -2,11 +2,14 @@
 #include <string.h>
 #include <cassert>
 #include <stdio.h>
+#include "scene/Scene.h"
 
 GouraudMaterial::GouraudMaterial():Material(){
 	this->type = GOURAUD_MATERIAL;
 	this->vertexShaderSource= strdup(
-		"#version 410\n\
+		"#version 440\n\
+		#define NUM_OBJECTS %d\n\
+		#define NUM_MATERIALS %d\n\
 		#define MAX_DIR_LIGHTS %d\n\
 		#define MAX_P_LIGHTS %d\n\
 		#if MAX_DIR_LIGHTS > 0\n\
@@ -45,10 +48,23 @@ GouraudMaterial::GouraudMaterial():Material(){
 		layout(std140) uniform ambLight{\n\
 			vec4 ambientLight;\n\
 		};\n\
-		uniform mat4 modelMatrix;\n\
-		uniform Material material;\n\
+		layout(std430) buffer modelMatrices{\n\
+			mat4 modelMatrix[NUM_OBJECTS];\n\
+		};\n\
+		struct Indices{\n\
+			int materialIndex;\n\
+			int visible;\n\
+			float distanceToCamera;\n\
+		};\n\
+		layout(std140) uniform materialIndices{\n\
+			Indices index[NUM_OBJECTS];\n\
+		};\n\
+		layout(std140) uniform materials{\n\
+			Material material[NUM_MATERIALS];\n\
+		};\n\
 		in vec3 normal;\n\
 		in vec3 position;\n\
+		in int drawID;\n\
 		layout(std140) uniform globalMatrices{\n\
 			mat4 worldMatrix;\n\
 			mat4 projectionMatrix;\n\
@@ -79,20 +95,20 @@ GouraudMaterial::GouraudMaterial():Material(){
     	\n\
 		void main(){\n\
 			vec4 pos = vec4(position,1.0);\n\
-			vec4 modelSpace = modelMatrix * pos;\n\
+			vec4 modelSpace = modelMatrix[drawID] * pos;\n\
 			vec4 worldSpace = worldMatrix * modelSpace;\n\
 			gl_Position = projectionMatrix * worldSpace;\n\
 			vec4 viewDirection = normalize(-worldSpace);\n\
-			vec4 vertexNormal = normalize(worldMatrix * modelMatrix * vec4(normal,0.0));\n\
+			vec4 vertexNormal = normalize(worldMatrix * modelMatrix[drawID] * vec4(normal,0.0));\n\
 			color = vec4(0.0,0.0,0.0,1.0);\n\
 			#if MAX_DIR_LIGHTS > 0\n\
 			for(int i=0; i< MAX_DIR_LIGHTS ;i++){\n\
 				vec4 normDirection = normalize(dirLights[i].vectorToLight);\n\
 				float cosAngIncidence;\n\
-				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,vertexNormal,viewDirection,material.shininess,cosAngIncidence);\n\
+				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,vertexNormal,viewDirection,material[index[drawID].materialIndex].shininess,cosAngIncidence);\n\
 				\n\
-            	color = color + (dirLights[i].color * material.diffuseColor * cosAngIncidence);\n\
-            	color = color + (material.specularColor * blinnPhongTerm);\n\
+            	color = color + (dirLights[i].color * material[index[drawID].materialIndex].diffuseColor * cosAngIncidence);\n\
+            	color = color + (material[index[drawID].materialIndex].specularColor * blinnPhongTerm);\n\
 			}\n\
 			#endif\n\
 			#if MAX_P_LIGHTS > 0\n\
@@ -101,13 +117,13 @@ GouraudMaterial::GouraudMaterial():Material(){
 				vec4 normDirection = normalize(difference);\n\
 				vec4 attenLightIntensity = attenuateLight(pLights[i].color,pLights[i].attenuation,difference);\n\
 				float cosAngIncidence;\n\
-				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,vertexNormal,viewDirection,material.shininess,cosAngIncidence);\n\
+				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,vertexNormal,viewDirection,material[index[drawID].materialIndex].shininess,cosAngIncidence);\n\
 				\n\
-            	color = color + (attenLightIntensity * material.diffuseColor * cosAngIncidence);\n\
-            	color = color + (material.specularColor * attenLightIntensity * blinnPhongTerm);\n\
+            	color = color + (attenLightIntensity * material[index[drawID].materialIndex].diffuseColor * cosAngIncidence);\n\
+            	color = color + (material[index[drawID].materialIndex].specularColor * attenLightIntensity * blinnPhongTerm);\n\
 			}\n\
 			#endif\n\
-            color = color + (material.diffuseColor * ambientLight);\n\
+            color = color + (material[index[drawID].materialIndex].diffuseColor * ambientLight);\n\
 		}");
     this->fragmentShaderSource=strdup(
         "#version 410\n\
@@ -118,10 +134,10 @@ GouraudMaterial::GouraudMaterial():Material(){
         }");
 }
 
-void GouraudMaterial::makePrograms(int numDirLights,int numPointLights){
+void GouraudMaterial::makePrograms(Scene* scene){
 	this->program = new GLProgram();
-	char* vs = this->configureSource(this->vertexShaderSource,numDirLights,numPointLights);
-	char* fs = this->configureSource(this->fragmentShaderSource,numDirLights,numPointLights);
+	char* vs = this->configureSource(this->vertexShaderSource,scene->getDirectionalLights().size(),scene->getPointLights().size(),scene->getObjects().size(),scene->getMaterials().size());
+	char* fs = this->configureSource(this->fragmentShaderSource,scene->getDirectionalLights().size(),scene->getPointLights().size(),scene->getObjects().size(),scene->getMaterials().size());
 	GLuint vertexShader = this->program->compileShader(GL_VERTEX_SHADER,vs);
 	GLuint fragmentShader = this->program->compileShader(GL_FRAGMENT_SHADER,fs);
 	delete vs;
@@ -132,10 +148,13 @@ void GouraudMaterial::makePrograms(int numDirLights,int numPointLights){
 	this->program->setProgram(prog);
 	this->program->setAttrPosition(glGetAttribLocation(prog, "position"));
 	this->program->setAttrNormal(glGetAttribLocation(prog, "normal"));
-	this->program->getUniforms()->unifModelMatrix = glGetUniformLocation(prog,"modelMatrix");
-	this->program->getUniforms()->unifDiffuseColor = glGetUniformLocation(prog,"material.diffuseColor");
-	this->program->getUniforms()->unifSpecularColor = glGetUniformLocation(prog,"material.specularColor");
-	this->program->getUniforms()->unifShininess = glGetUniformLocation(prog,"material.shininess");
+	this->program->setAttrDrawID(glGetAttribLocation(prog, "drawID"));
+	this->program->getUniforms()->unifModelMatrix =  glGetProgramResourceIndex(prog,GL_SHADER_STORAGE_BLOCK,"modelMatrices");
+	glShaderStorageBlockBinding(prog, this->program->getUniforms()->unifModelMatrix,MODEL_MATRICES_UBI);
+	this->program->getUniforms()->unifMaterial = glGetUniformBlockIndex(prog,"materials");
+	glUniformBlockBinding(prog, this->program->getUniforms()->unifMaterial,MATERIALS_UBI);
+	this->program->getUniforms()->unifIndices = glGetUniformBlockIndex(prog,"materialIndices");
+	glUniformBlockBinding(prog, this->program->getUniforms()->unifIndices,INDICES_UBI);
 	this->program->getUniforms()->unifBlockMatrices = glGetUniformBlockIndex(prog,"globalMatrices");
 	glUniformBlockBinding(prog, this->program->getUniforms()->unifBlockMatrices,GLOBAL_MATRICES_UBI);
 	this->program->getUniforms()->unifBlockDirectionalLights = glGetUniformBlockIndex(prog,"directionalLights");

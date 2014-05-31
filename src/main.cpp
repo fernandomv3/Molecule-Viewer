@@ -14,6 +14,8 @@
 #include "scene/Scene.h"
 #include "render/Renderer.h"
 #include "material/PhongMaterial.h"
+#include "material/TessMaterial.h"
+#include "material/GouraudMaterial.h"
 #include "Molecule.h"
 #include "math/SphericalCoord.h"
 
@@ -259,9 +261,10 @@ int main(int argc, char** argv){
 	mol->addToScene(scene);
 	Camera* camera = scene->getCamera();
 	camera->setTarget(new Vec3(mol->getX(),mol->getY(),mol->getZ()));
-	/*Geometry* geom = new Geometry();
+	/*camera->setTarget(new Vec3(0,0,0));
+	Geometry* geom = new Geometry();
 	geom->loadDataFromFile("icosphere.mesh");
-	Material* mat = new PhongMaterial();
+	Material* mat = new TessMaterial();
 	Material* cylMaterial = new PhongMaterial();
 	cylMaterial->getDiffuseColor()->setRGB(0,0,1);
 	cylMaterial->getSpecularColor()->setRGB(0.5,0.5,0.5);
@@ -272,10 +275,10 @@ int main(int argc, char** argv){
 	Geometry* cylGeom = new Geometry();
 	cylGeom->loadDataFromFile("cylinder.mesh");
 	Mesh* cylinder = new Mesh(cylGeom,cylMaterial);
-	cylinder->getPosition()->setY(2.0);
 	Mesh* sphere = new Mesh(geom,mat);
-	scene->addObject((Object3D*)cylinder);
-	scene->addObject((Object3D*)sphere);*/
+	
+	scene->addObject((Object3D*)sphere);
+	scene->addObject((Object3D*)cylinder);*/
 
 	light1 = new DirectionalLight();
 	light1->getPosition()->setX(2.0);

@@ -5,7 +5,7 @@
 class GouraudMaterial:public Material{
 public:
 	GouraudMaterial();
-	void makePrograms(int numDirLights, int numPointLights);
+	void makePrograms(Scene* scene);
 };
 
 #endif
