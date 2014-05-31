@@ -376,7 +376,7 @@ void Renderer::renderOctreeNode(OctreeNode* node, Scene* scene){
 	}
 }
 
-BufferObjects Renderer::getBuffers(){
+BufferObjects* Renderer::getBuffers(){
 	return this->buffers;
 }
 
@@ -479,9 +479,8 @@ GLuint* Renderer::createGeometryBuffers(Scene* scene){
 	return buffers;
 }
 
-GLuint* Renderer::createObjectBuffers(Scene* scene){
+GLuint* Renderer::createObjectBuffers(list<Object3D*> objectList){
 	GLuint* buffers = new GLuint[4];
-	list<Object3D*> objectList = scene->getObjects();
 	list<Object3D*>::iterator it = objectList.begin();
 	int size = objectList.size();
 	GLushort * drawID = new GLushort[size];
@@ -579,16 +578,8 @@ GLuint* Renderer::createObjectBuffers(Scene* scene){
 
 BufferObjects Renderer::createEmptyBufferObject(){
     BufferObjects buf = new struct bufferObjects;
-	buf->pointLights = 0;
-	buf->directionalLights = 0;
-	buf->ambientLight = 0;
-	buf->materials = 0;
 	buf->bufferIndices = 0;
 	buf->modelMatrices = 0;
-	buf->vertexBuffer = 0;
-	buf->elementBuffer = 0;
-	buf->normalBuffer = 0;
-	buf->globalMatrices =0;
 	buf->indirectBuffer = 0;
 	buf->drawIDBuffer =0;
 	return buf;
@@ -601,31 +592,27 @@ void Renderer::renderMultiDraw(Scene* scene){
 		glBindVertexArray(this->vao);
 	}
 	if (this->geometryGroups.size() == 0){//create groups, first call
-	    this->geometryGroups.rezize(NUM_MATERIALS_TYPES);
+	    this->geometryGroups.resize(NUM_MATERIAL_TYPES);
 		list<Object3D*> objectList = scene->getObjects();
 	    list<Object3D*>::iterator it = objectList.begin();
 	    for(;it != objectList.end(); it++){
-	        Mesh* mesh = (Mesh*)(*it)
+	        Mesh* mesh = (Mesh*)(*it);
 	        int type = (int)(mesh->getMaterial()->getType());
-	        this->geometryGroups[i].push_back((*it));
+	        this->geometryGroups[type].push_back((*it));
 	    }
 	    
 	}
-	
-	for(int i =0; i<NUM_MATERIALS_TYPES; i++){
 	    
-	}
-	//should be using SSBO
 	if(this->globalBuffers == NULL){
-		this->buffers = new struct globalBufferObjects;//must be an array for multimaterial rendering
-		this->buffers->pointLights = 0;
-		this->buffers->directionalLights = 0;
-		this->buffers->ambientLight = 0;
-		this->buffers->materials = 0;
-		this->buffers->vertexBuffer = 0;
-		this->buffers->elementBuffer = 0;
-		this->buffers->normalBuffer = 0;
-		this->buffers->globalMatrices =0;
+		this->globalBuffers = new struct globalBufferObjects;//must be an array for multimaterial rendering
+		this->globalBuffers->pointLights = 0;
+		this->globalBuffers->directionalLights = 0;
+		this->globalBuffers->ambientLight = 0;
+		this->globalBuffers->materials = 0;
+		this->globalBuffers->vertexBuffer = 0;
+		this->globalBuffers->elementBuffer = 0;
+		this->globalBuffers->normalBuffer = 0;
+		this->globalBuffers->globalMatrices =0;
 	}
 
 	this->globalBuffers->ambientLight = this->calculateAmbientLights(scene);
@@ -637,6 +624,11 @@ void Renderer::renderMultiDraw(Scene* scene){
 
 
 	this->globalBuffers->pointLights = this->calculatePointLights(scene);
+
+	if(this->globalBuffers->materials == 0){
+		this->globalBuffers->materials = this->createMaterialBuffer(scene);
+	}
+
 	if(this->globalBuffers->vertexBuffer == 0){
 		GLuint* buf = this->createGeometryBuffers(scene);
 		this->globalBuffers->vertexBuffer = buf[VERTICES];
@@ -645,20 +637,19 @@ void Renderer::renderMultiDraw(Scene* scene){
 		delete[] buf;
 	}
 	
-	if(this->globalBuffers->materials == 0){
-		this->globalBuffers->materials = this->createMaterialBuffer(scene);
-	}
-
-	if(this->buffers->indirectBuffer == 0 ||this->buffers->modelMatrices == 0 || this->buffers->bufferIndices == 0){
-		GLuint* buf = this->createObjectBuffers(scene);
-		this->buffers->bufferIndices = buf[BUFFER_INDICES];
-		this->buffers->indirectBuffer = buf[INDIRECT];
-		this->buffers->modelMatrices = buf[MODEL_MATRIX];
-		this->buffers->drawIDBuffer = buf[DRAWID];
+	for (int i=0; i < NUM_MATERIAL_TYPES; i++){
+		if(this->geometryGroups[i].size() == 0)continue;
+		if(this->buffers[i] == NULL) this->buffers[i] = this->createEmptyBufferObject();
+	if(this->buffers[i]->indirectBuffer == 0 ||this->buffers[i]->modelMatrices == 0 || this->buffers[i]->bufferIndices == 0){
+		GLuint* buf = this->createObjectBuffers(geometryGroups[i]);
+		this->buffers[i]->bufferIndices = buf[BUFFER_INDICES];
+		this->buffers[i]->indirectBuffer = buf[INDIRECT];
+		this->buffers[i]->modelMatrices = buf[MODEL_MATRIX];
+		this->buffers[i]->drawIDBuffer = buf[DRAWID];
 		delete[] buf;
 	}
 
-	GLProgram* program = (*(scene->getMaterials().begin()))->getProgram();
+	GLProgram* program = ((Mesh*)(*geometryGroups[i].begin()))->getMaterial()->getProgram();
 	//set vertex attribute
 	glBindBuffer(GL_ARRAY_BUFFER,this->globalBuffers->vertexBuffer);
 	glVertexAttribPointer(
@@ -686,7 +677,7 @@ void Renderer::renderMultiDraw(Scene* scene){
 
 	//set drawID attribute
 
-	glBindBuffer(GL_ARRAY_BUFFER,this->buffers->drawIDBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER,this->buffers[i]->drawIDBuffer);
 	glVertexAttribIPointer(
 		program->getAttrDrawID(),//attribute from prgram(position)
 		1,//number of components per vertex
@@ -699,14 +690,15 @@ void Renderer::renderMultiDraw(Scene* scene){
 	
 	glUseProgram(program->getProgram());
 
-	this->updateModelMatrices(this->buffers->modelMatrices,this->buffers->indirectBuffer,scene->getObjects());
+	this->updateModelMatrices(this->buffers[i]->modelMatrices,this->buffers[i]->indirectBuffer,geometryGroups[i]);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,this->globalBuffers->elementBuffer);
-	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, this->buffers->indirectBuffer);
-	glMultiDrawElementsIndirect(GL_TRIANGLES,GL_UNSIGNED_SHORT,(void*)0,scene->getObjects().size(),0);
+	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, this->buffers[i]->indirectBuffer);
+	glMultiDrawElementsIndirect(GL_TRIANGLES,GL_UNSIGNED_SHORT,(void*)0,geometryGroups[i].size(),0);
 
 	glDisableVertexAttribArray(program->getAttrPosition());
 	glDisableVertexAttribArray(program->getAttrNormal());
+}
 }
 
 void Renderer::updateModelMatrices(GLuint modelMatricesBuffer,GLuint indirectBuffer,list<Object3D*> objects){
@@ -736,4 +728,7 @@ void Renderer::updateModelMatrices(GLuint modelMatricesBuffer,GLuint indirectBuf
 	}
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER,0);
 	glBindBuffer(GL_DRAW_INDIRECT_BUFFER,indirectBuffer);
-	glBufferSubData(GL_DRAW_INDIRECT_BUFFER,
+	glBufferSubData(GL_DRAW_INDIRECT_BUFFER,0,size*sizeof(struct indirect),indirects);
+	delete[] indirects;
+
+}

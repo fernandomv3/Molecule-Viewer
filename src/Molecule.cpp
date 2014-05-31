@@ -85,7 +85,7 @@ void Molecule::readPDB(const char* filename){
 	      		//create material for both representations
 	      		Material* atomMaterial = matPool->getAtomMaterial(element);
 	      		if(!atomMaterial){
-	      			atomMaterial = new PhongMaterial();
+	      			atomMaterial = new TessMaterial();
 	      		}
 	      		//create mesh for ball & stick
 	      		Mesh* atomMesh = new Mesh(atomGeometry,atomMaterial);
@@ -209,7 +209,7 @@ Vec3* Molecule::getBondPos(Vec3* atomPos1, Vec3* atomPos2){
 void Molecule::calculateConnections(int num){
 	Geometry* geom = new Geometry();
 	geom->loadDataFromFile("cylinder.mesh");
-	Material* mat = new PhongMaterial();
+	Material* mat = new TessMaterial();
 	mat->getDiffuseColor()->setRGB(0.5,0.5,0.5);
 	mat->setShininess(1000); 
 

@@ -52,7 +52,7 @@ struct globalBufferObjects{
 	GLuint vertexBuffer;
 	GLuint elementBuffer;
 	GLuint normalBuffer;
-}
+};
 
 enum {VERTICES,NORMALS,ELEMENTS};
 enum {MODEL_MATRIX,BUFFER_INDICES,INDIRECT,DRAWID};
@@ -79,10 +79,10 @@ public:
 	GLuint makeUBO(void* bufferData, GLsizei bufferSize);
 	GLuint makePointBuffer(GLenum target, void* bufferData, GLsizei bufferSize);
 	void renderOctreeNode(OctreeNode* node,Scene* scene);
-	BufferObjects getBuffers();
+	BufferObjects* getBuffers();
 	GLuint* createGeometryBuffers(Scene* scene);
 	GLuint createMaterialBuffer(Scene* scene);
-	GLuint* createObjectBuffers(Scene* scene);
+	GLuint* createObjectBuffers(list<Object3D*> objectList);
 	void renderMultiDraw(Scene* scene);
 	void updateModelMatrices(GLuint modelMatricesBuffer,GLuint indirectBuffer,list<Object3D*> objects);
 };

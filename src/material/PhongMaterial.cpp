@@ -146,7 +146,7 @@ PhongMaterial::PhongMaterial():Material(){
 void PhongMaterial::makePrograms(Scene* scene){
 	this->program = new GLProgram();
 	char* vs = this->configureSource(this->vertexShaderSource,scene->getDirectionalLights().size(),scene->getPointLights().size(),scene->getObjects().size());
-	char* fs = this->configureSource(this->fragmentShaderSource,scene->getDirectionalLights().size(),scene->getPointLights().size(),scene->getObjects().size(),scene->getGeometries().size());
+	char* fs = this->configureSource(this->fragmentShaderSource,scene->getDirectionalLights().size(),scene->getPointLights().size(),scene->getObjects().size(),scene->getMaterials().size());
 	GLuint vertexShader = this->program->compileShader(GL_VERTEX_SHADER,vs);
 	GLuint fragmentShader = this->program->compileShader(GL_FRAGMENT_SHADER,fs);
 	delete vs;

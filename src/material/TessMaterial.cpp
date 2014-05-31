@@ -18,6 +18,7 @@ TessMaterial::TessMaterial():Material(){
 		void main(){\n\
 			vPos = position;\n\
 			vNormal = normal;\n\
+			vDrawID = drawID;\n\
 		}");
 	this->tessControlShaderSource = strdup(
 		"#version 440\n\
@@ -25,8 +26,8 @@ TessMaterial::TessMaterial():Material(){
 		layout(vertices = 3) out;\n\
 		in vec3 vNormal[];\n\
 		in vec3 vPos[];\n\
-		flat in int vDrawID;\n\
-		flat out int tcDrawID;\n\
+		flat in int vDrawID[];\n\
+		flat out int tcDrawID[];\n\
 		out vec3 tcPos[];\n\
 		out vec3 tcNormal[];\n\
 		struct Indices{\n\
@@ -43,7 +44,8 @@ TessMaterial::TessMaterial():Material(){
 		void main(){\n\
 			tcPos[ID] = vPos[ID];\n\
 			tcNormal[ID] = vNormal[ID];\n\
-			float distanceToCamera = materialIndices[vDrawID].distanceToCamera;\n\
+			tcDrawID[ID] = vDrawID[ID];\n\
+			float distanceToCamera = index[vDrawID[ID]].distanceToCamera;\n\
 			if(ID ==0){\n\
 				int inner = 1;\n\
 				int outer = 1;\n\
@@ -76,7 +78,7 @@ TessMaterial::TessMaterial():Material(){
 		layout(triangles, equal_spacing, ccw) in;\n\
 		in vec3 tcPos[];\n\
 		in vec3 tcNormal[];\n\
-		flat in int tcDrawID;\n\
+		flat in int tcDrawID[];\n\
 		flat out int teDrawID;\n\
 		out vec4 tePos;\n\
 		out vec4 teNormal;\n\
@@ -88,6 +90,7 @@ TessMaterial::TessMaterial():Material(){
 			mat4 projectionMatrix;\n\
 		};\n\
 		void main(){\n\
+			teDrawID = (tcDrawID[0]+ tcDrawID[1] +tcDrawID[2])/3;\n\
 			vec3 p0 = gl_TessCoord.x * tcPos[0];\n\
 			vec3 p1 = gl_TessCoord.y * tcPos[1];\n\
 			vec3 p2 = gl_TessCoord.z * tcPos[2];\n\
@@ -97,8 +100,8 @@ TessMaterial::TessMaterial():Material(){
 			vec3 n2 = gl_TessCoord.z * tcNormal[2];\n\
 			tePos = vec4(normalize(p0+p1+p2),1.0);\n\
 			vec3 n = normalize(n0+n1+n2);\n\
-			teNormal = worldMatrix * modelMatrix[tcDrawID] * vec4(n,0.0);\n\
-			gl_Position = projectionMatrix * worldMatrix * modelMatrix[tcDrawID] * tePos;\n\
+			teNormal = worldMatrix * modelMatrix[tcDrawID[0]] * vec4(n,0.0);\n\
+			gl_Position = projectionMatrix * worldMatrix * modelMatrix[tcDrawID[0]] * tePos;\n\
 		}");
     this->fragmentShaderSource=strdup(
     	"#version 440\n\
@@ -189,7 +192,7 @@ TessMaterial::TessMaterial():Material(){
 				vec4 normDirection = normalize(dirLights[i].vectorToLight);\n\
 				vec4 normal = normalize(teNormal);\n\
 				float cosAngIncidence;\n\
-				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,normal,viewDirection,material.shininess,cosAngIncidence);\n\
+				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,normal,viewDirection,material[index[teDrawID].materialIndex].shininess,cosAngIncidence);\n\
 				\n\
             	outputColor = outputColor + (dirLights[i].color * material[index[teDrawID].materialIndex].diffuseColor * cosAngIncidence);\n\
             	outputColor = outputColor + (material[index[teDrawID].materialIndex].specularColor * blinnPhongTerm);\n\
@@ -202,7 +205,7 @@ TessMaterial::TessMaterial():Material(){
 				vec4 attenLightIntensity = attenuateLight(pLights[i].color,pLights[i].attenuation,difference);\n\
 				vec4 normal = normalize(teNormal);\n\
 				float cosAngIncidence;\n\
-				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,normal,viewDirection,material.shininess,cosAngIncidence);\n\
+				float blinnPhongTerm = calculateBlinnPhongTerm(normDirection,normal,viewDirection,material[index[teDrawID].materialIndex].shininess,cosAngIncidence);\n\
 				\n\
             	outputColor = outputColor + (attenLightIntensity * material[index[teDrawID].materialIndex].diffuseColor * cosAngIncidence);\n\
             	outputColor = outputColor + (material[index[teDrawID].materialIndex].specularColor * attenLightIntensity * blinnPhongTerm);\n\
@@ -213,10 +216,14 @@ TessMaterial::TessMaterial():Material(){
 }
 void TessMaterial::makePrograms(Scene* scene){
 	this->program = new GLProgram();
-	char* vs = this->configureSource(this->vertexShaderSource,scene->getDirectionalLights().size(),scene->getPointLights().size());
-	char* fs = this->configureSource(this->fragmentShaderSource,scene->getDirectionalLights().size(),scene->getPointLights().size(),scene->getObjects().size(),scene->getGeometries().size());
-	char* tcs = this->configureSource(this->tessControlShaderSource,scene->getDirectionalLights().size(),scene->getPointLights().size(),scene->getObjects().size(),scene->getGeometries().size());
-	char* tes = this->configureSource(this->tessEvaluationShaderSource,scene->getDirectionalLights().size(),scene->getPointLights().size(),scene->getObjects().size(),scene->getGeometries().size());
+	char* vs = this->configureSource(this->vertexShaderSource,scene->getDirectionalLights().size(),scene->getPointLights().size(),scene->getObjects().size(),scene->getMaterials().size());
+	char* fs = this->configureSource(this->fragmentShaderSource,scene->getDirectionalLights().size(),scene->getPointLights().size(),scene->getObjects().size(),scene->getMaterials().size());
+	char* tcs = this->configureSource(this->tessControlShaderSource,scene->getDirectionalLights().size(),scene->getPointLights().size(),scene->getObjects().size(),scene->getMaterials().size());
+	char* tes = this->configureSource(this->tessEvaluationShaderSource,scene->getDirectionalLights().size(),scene->getPointLights().size(),scene->getObjects().size(),scene->getMaterials().size());
+	printf("Vertex:\n%s\n", vs);
+	printf("TessControl:\n%s\n", tcs);
+	printf("TessEval:\n%s\n", tes);
+	printf("Fragment:\n%s\n", fs);
 	GLuint vertexShader = this->program->compileShader(GL_VERTEX_SHADER,vs);
 	delete vs;
 	GLuint fragmentShader = this->program->compileShader(GL_FRAGMENT_SHADER,fs);
