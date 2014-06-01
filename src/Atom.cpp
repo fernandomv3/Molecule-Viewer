@@ -5,6 +5,11 @@ Atom::Atom(const char* symbol, Mesh * mesh){
 	this->mesh = mesh;
 }
 
+Atom::Atom(const Atom& atom){
+	this->symbol = atom.symbol;
+	this->mesh = new Mesh(*(atom.mesh));
+}
+
 Atom::~Atom(){
 	delete this->symbol;
 }

@@ -8,6 +8,7 @@ private:
 	Mesh* mesh;
 public:
 	Atom(const char* symbol, Mesh * mesh);
+	Atom(const Atom& atom);
 	~Atom();
     char* getSymbol();
     void setSymbol(const char* symbol);

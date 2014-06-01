@@ -20,6 +20,7 @@ private:
 public:
 	Euler(GLfloat x, GLfloat y, GLfloat z, const char* order);
 	Euler(GLfloat x, GLfloat y, GLfloat z);
+	Euler(const Euler& euler);
 	~Euler();
 	char* getOrder();
 	GLfloat getX();
