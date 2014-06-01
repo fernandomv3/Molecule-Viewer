@@ -18,7 +18,7 @@ AtomMaterialPool::AtomMaterialPool(){
 		char hexColor[8];
 		while(!colorsFile.eof()){
 			colorsFile >> element >> hexColor;
-			Material* mat= new PhongMaterial();
+			Material* mat= new TessMaterial();
 			float color[3];
 			AtomMaterialPool::RGBfromHexString(color,hexColor);
 			mat->getDiffuseColor()->setRGB(color[0],color[1],color[2]);

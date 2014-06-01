@@ -395,12 +395,12 @@ GLuint Renderer::createMaterialBuffer(Scene* scene){
 			(*it)->makePrograms(scene);
 		}
 	}
-	for(int i=0; i < numMaterials;i++){
+	/*for(int i=0; i < numMaterials;i++){
 		printf("Material %d\n",i );
 		printf("\tDiffuse color: %f %f %f\n",materialList[i].diffuseColor[0],materialList[i].diffuseColor[1],materialList[i].diffuseColor[2]);
 		printf("\tSpecular color: %f %f %f\n",materialList[i].specularColor[0],materialList[i].specularColor[1],materialList[i].specularColor[2]);
 		printf("\tShininess: %f\n",materialList[i].shininess);
-	}
+	}*/
 	GLuint ubo = this->makeBuffer(
 		GL_UNIFORM_BUFFER,
 		materialList,
@@ -501,7 +501,7 @@ GLuint* Renderer::createObjectBuffers(list<Object3D*> objectList){
 
 		ptrIndices->materialIndex = ((Mesh*)(*it))->getMaterial()->getSceneIndex();
 		ptrIndices->visible = (GLuint)(((Mesh*)(*it))->getOctreeNode()->isVisible());
-		ptrIndices->distanceToCamera = 31;
+		ptrIndices->distanceToCamera = 90;
 		ptrIndices++;
 
 		ptrIndirects->count = ((Mesh*)(*it))->getGeometry()->getNumElements();
@@ -513,7 +513,7 @@ GLuint* Renderer::createObjectBuffers(list<Object3D*> objectList){
 		drawID[i]=i;
 		i++;
 	}
-	for(int i = 0; i < size ; i++){
+	/*for(int i = 0; i < size ; i++){
 		printf("Object %d\n", i);
 		printf("\tMatrix:\n");
 		for (int j=0;j < 4 ;j++){
@@ -531,7 +531,7 @@ GLuint* Renderer::createObjectBuffers(list<Object3D*> objectList){
 		printf("\tfirstIndex: %d\n",indirects[i].firstIndex);
 		printf("\tbaseVertex: %d\n",indirects[i].baseVertex);
 		printf("\tbaseInstance: %d\n",indirects[i].baseInstance);
-	}
+	}*/
 
 	buffers[MODEL_MATRIX] = this->makeBuffer(
 		GL_SHADER_STORAGE_BUFFER,
@@ -549,7 +549,8 @@ GLuint* Renderer::createObjectBuffers(list<Object3D*> objectList){
 	buffers[BUFFER_INDICES] = this->makeBuffer(
 		GL_UNIFORM_BUFFER,
 		indices,
-		sizeof(struct bufferIndices)*size
+		sizeof(struct bufferIndices)*size,
+		GL_STREAM_DRAW
 	);
 	glBindBufferRange(
 		GL_UNIFORM_BUFFER,//target
@@ -690,7 +691,19 @@ void Renderer::renderMultiDraw(Scene* scene){
 
 		glUseProgram(program->getProgram());
 
-		this->updateModelMatrices(this->buffers[i]->modelMatrices,this->buffers[i]->indirectBuffer,geometryGroups[i]);
+		this->updateModelMatrices(
+			this->buffers[i]->modelMatrices,
+			this->buffers[i]->indirectBuffer,
+			this->buffers[i]->bufferIndices,
+			geometryGroups[i]
+		);
+		glBindBufferRange(
+			GL_SHADER_STORAGE_BUFFER,//target
+			MODEL_MATRICES_UBI,//binding point
+			this->buffers[i]->modelMatrices,//data
+			0,//offset
+			sizeof(GLfloat)*geometryGroups[i].size()*16//size in bytes
+		);
 		glBindBufferRange(
 			GL_UNIFORM_BUFFER,//target
 			INDICES_UBI,//binding point
@@ -727,11 +740,13 @@ void Renderer::renderMultiDraw(Scene* scene){
 	}
 }
 
-void Renderer::updateModelMatrices(GLuint modelMatricesBuffer,GLuint indirectBuffer,list<Object3D*> objects){
+void Renderer::updateModelMatrices(GLuint modelMatricesBuffer,GLuint indirectBuffer,GLuint bufferIndices,list<Object3D*> objects){
 	list<Object3D*>::iterator it = objects.begin();
 	int size = objects.size();
 	struct indirect* indirects = new struct indirect[size];
 	struct indirect* ptrIndirects= indirects;
+	struct bufferIndices* indices= new struct bufferIndices[size];
+	struct bufferIndices* ptrIndices = indices;
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER,modelMatricesBuffer);
 	for(int i=0;it!= objects.end();it++,i++){
 		if((*it)->getVisible()){
@@ -742,7 +757,9 @@ void Renderer::updateModelMatrices(GLuint modelMatricesBuffer,GLuint indirectBuf
 			GLfloat* mat = traspose->getElements();
 			delete traspose;
 			glBufferSubData(GL_SHADER_STORAGE_BUFFER,sizeof(GLfloat)*16*i,sizeof(GLfloat)*16,mat);
-			delete[] mat;	
+			delete[] mat;
+			ptrIndices->materialIndex = ((Mesh*)(*it))->getMaterial()->getSceneIndex();
+			ptrIndices->distanceToCamera = ((Mesh*)(*it))->getDistanceToCamera();
 		}
 		else{
 			ptrIndirects->instanceCount =0;
@@ -751,10 +768,13 @@ void Renderer::updateModelMatrices(GLuint modelMatricesBuffer,GLuint indirectBuf
 		ptrIndirects->baseVertex = ((Mesh*)(*it))->getGeometry()->getSceneVerticesOffset()/3;
 		ptrIndirects->baseInstance= i;
 		ptrIndirects++;
+		ptrIndices++;
 	}
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER,0);
+	glBindBuffer(GL_UNIFORM_BUFFER,bufferIndices);
+	glBufferSubData(GL_UNIFORM_BUFFER,0,size*sizeof(struct bufferIndices),indices);
 	glBindBuffer(GL_DRAW_INDIRECT_BUFFER,indirectBuffer);
 	glBufferSubData(GL_DRAW_INDIRECT_BUFFER,0,size*sizeof(struct indirect),indirects);
 	delete[] indirects;
-
+	delete[] indices;
 }
