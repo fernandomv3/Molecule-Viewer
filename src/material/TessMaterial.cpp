@@ -49,20 +49,20 @@ TessMaterial::TessMaterial():Material(){
 			if(ID ==0){\n\
 				int inner = 1;\n\
 				int outer = 1;\n\
-				if(distanceToCamera > 80){\n\
+				if(distanceToCamera > 65){\n\
 					inner= 1;\n\
 					outer =1;\n\
-				} else if (distanceToCamera > 65){\n\
+				} else if (distanceToCamera > 45){\n\
 					inner = 1;\n\
 					outer = 2;\n\
-				} else if (distanceToCamera > 30){\n\
+				} else if (distanceToCamera > 25){\n\
 					inner=2;\n\
 					outer=2;\n\
-				} else if (distanceToCamera > 10){\n\
+				} else if (distanceToCamera > 8){\n\
 					inner=3;\n\
 					outer=3;\n\
 				} else if (distanceToCamera > 0){\n\
-					inner=4;\n\
+					inner=3;\n\
 					outer=4;\n\
 				}\n\
 				gl_TessLevelInner[0] = inner;\n\
