@@ -223,6 +223,7 @@ void render(){
 	newTime = SDL_GetTicks();
 	int diff = newTime - oldTime;
 	sprintf(title,"Molecule: %1.0f FPS %d ms/frame",1.0/diff *1000,diff);
+	printf("%d\n",diff );
 	SDL_SetWindowTitle(window,title);
 	oldTime=newTime;
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
