@@ -12,6 +12,7 @@ private:
 	BoundingBox boundingBox;
 public:
 	Mesh();
+	Mesh(const Mesh& mesh);
 	Mesh(Geometry* geometry);
 	Mesh(Geometry* geometry, Material* material);
 	Material * getMaterial();

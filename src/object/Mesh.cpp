@@ -7,6 +7,12 @@ Mesh::Mesh():Object3D(){
 	this->boundingBox = NULL;
 }
 
+Mesh::Mesh(const Mesh& mesh):Object3D((Object3D)mesh){
+	this->geometry = mesh.geometry;
+	this->material = mesh.material;
+	this->boundingBox = NULL;
+}
+
 Mesh::Mesh(Geometry* geometry):Object3D(){
 	this->geometry = geometry;
 	this->boundingBox = NULL;

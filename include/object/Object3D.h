@@ -25,6 +25,7 @@ private:
 public:
 	list<Object3D*> objects;
 	Object3D();
+	Object3D(const Object3D& object3D);
 	virtual ~Object3D();
 	Vec3* getPosition();
 	Euler* getRotation();

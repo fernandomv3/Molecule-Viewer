@@ -31,6 +31,26 @@ Molecule::Molecule(const char* filename):Object3D(){
 	this->readPDB(filename);
 }
 
+Molecule::Molecule(const Molecule& molecule):Object3D(){
+	this->numAtoms = molecule.numAtoms;
+	this->x = molecule.x;
+	this->y = molecule.y;
+	this->z = molecule.z;
+	this->connections = molecule.connections;
+	int atomsSize = molecule.atoms.size();
+	for(int i =0; i < atomsSize; i++){
+		Atom* newAtom = new Atom(*(molecule.atoms[i]));
+		Atom* newSpacefill = new Atom(*(molecule.spacefill[i]));
+		this->atoms.push_back(newAtom);
+		this->spacefill.push_back(newSpacefill);
+	}
+	int bondsSize = molecule.bonds.size();
+	for(int i =0; i < bondsSize; i++){
+		Mesh* newMesh = new Mesh(*(molecule.bonds[i]));
+		this->bonds.push_back(newMesh);
+	}
+}
+
 Molecule::~Molecule(){
 	if(this->connections != NULL){
 		for(int i =0; i < this->numAtoms; i++){
@@ -40,19 +60,19 @@ Molecule::~Molecule(){
 	}
 }
 
-void Molecule::initConnectionMatrix(int numAtoms,bool value){
+void Molecule::initConnectionMatrix(int numAtoms,char value){
   if (connections != NULL){
 		for(int i=0; i < numAtoms; i++){
 			delete (this->connections[i]);
 		}
 	}
-	this->connections = new bool*[numAtoms];
+	this->connections = new char*[numAtoms];
 	for(int i = 0; i < this->numAtoms;i++){
-		this->connections[i] = new bool[this->numAtoms];
+		this->connections[i] = new char[this->numAtoms];
 	}
 	for(int i=0;i<numAtoms;i++){
 		for(int j=0; j<numAtoms;j++){
-			this->connections[i][j] = false;
+			this->connections[i][j] = value;
 		}
 	}
 }
@@ -135,7 +155,7 @@ void Molecule::readPDB(const char* filename){
 	      	else{
 	      		if(!strcmp(recordName,"CONECT")){
 	      			if(!endAtoms){
-	      				this->initConnectionMatrix(this->numAtoms,false);
+	      				this->initConnectionMatrix(this->numAtoms,0);
 	      				endAtoms = true;
 	      			}
 	      			char* atomSerialNo = substr(line,6,5);
@@ -147,7 +167,7 @@ void Molecule::readPDB(const char* filename){
 	      				int bonded = atoi(bondedAtom);
 	      				//printf("\t%d",bonded );
 	      				if(bonded){
-	      					this->connections[atom][bonded] = true;
+	      					this->connections[atom][bonded] += 1;
 	      				}
 	      				delete bondedAtom;
 	      			}
@@ -158,7 +178,7 @@ void Molecule::readPDB(const char* filename){
 	      }
 	    }
 	    if(!endAtoms){
-	      	this->initConnectionMatrix(this->numAtoms,false);
+	      	this->initConnectionMatrix(this->numAtoms,0);
 	      	endAtoms = true;
 	    }
 	    pdbFile.close();
@@ -169,7 +189,7 @@ void Molecule::readPDB(const char* filename){
   	}
 }
 
-Mesh* Molecule::createBond(Atom* a1, Atom* a2){
+Mesh* Molecule::createBond(Atom* a1, Atom* a2,int numLinks){
 	Mesh* mesh = new Mesh();
 	Vec3* upVec = new Vec3();
 	upVec->setX(0.0);
@@ -216,14 +236,14 @@ void Molecule::calculateConnections(int num){
 	for(int i = 0; i < this->numAtoms; i++){
 		for(int j=i+1; j< this->numAtoms;j++){
 			if( Molecule::atomsConnected(this->atoms[i],this->atoms[j]) ){
-				this->connections[i][j] = true;
+				this->connections[i][j] += 1;
 			}
 		}
 	}
 	for(int i = 0; i < this->numAtoms; i++){
 		for(int j=i+1; j< this->numAtoms;j++){
 			if( this->connections[i][j]){
-				Mesh * bond = createBond(this->atoms[i],this->atoms[j]);
+				Mesh * bond = createBond(this->atoms[i],this->atoms[j],this->connections[i][j]);
 				bond->setGeometry(geom);
 				bond->setMaterial(mat);
 				this->bonds.push_back(bond);
@@ -244,7 +264,7 @@ vector<Mesh*> Molecule::getBonds(){
 	return this->bonds;
 }
 
-bool** Molecule::getConnections(){
+char** Molecule::getConnections(){
 	return this->connections;
 }
 

@@ -16,6 +16,19 @@ Object3D::Object3D(){
 	this->distanceToCamera = 1;
 	//this->quaternion->setFromEuler(this->rotation,false);
 }
+Object3D::Object3D(const Object3D& object3D){
+	this->visible = object3D.visible;
+	this->position = new Vec3(*(object3D.position));
+	this->rotation = new Euler(*(object3D.rotation));
+	this->quaternion = new Quaternion(*(object3D.quaternion));
+	this->scale = new Vec3(*(object3D.scale));
+	this->modelMatrix = Mat4::identityMatrix();
+	this->octreeNode = NULL;
+	this->rotation->quaternion = this->quaternion;
+	this->quaternion->euler=this->rotation;
+	this->parent = NULL;
+	this->distanceToCamera = 1;
+}
 
 Object3D::~Object3D(){
 	if (this->position != NULL){

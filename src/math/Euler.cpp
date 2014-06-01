@@ -24,6 +24,14 @@ Euler::Euler(GLfloat x, GLfloat y, GLfloat z){
 	this->quaternion = NULL;
 }
 
+Euler::Euler(const Euler& euler){
+	this->x =  euler.x;
+	this->y = euler.y;
+	this->z = euler.z;
+	this->order = strdup(euler.order);
+	this->quaternion = euler.quaternion;
+}
+
 Euler::~Euler(){
 	delete[] this->order;
 }
