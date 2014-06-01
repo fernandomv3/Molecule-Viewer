@@ -24,7 +24,6 @@ struct bufferIndices{
 	GLuint materialIndex;
 	GLuint visible;
 	GLfloat distanceToCamera; 
-	GLuint stride;
 };
 
 struct indirect{

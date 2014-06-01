@@ -79,7 +79,7 @@ PhongMaterial::PhongMaterial():Material(){
 			int visible;\n\
 			float distanceToCamera;\n\
 		};\n\
-		layout(std140) uniform materialIndices{\n\
+		layout(std430) uniform materialIndices{\n\
 			Indices index[NUM_OBJECTS];\n\
 		};\n\
 		layout(std140) uniform materials{\n\
