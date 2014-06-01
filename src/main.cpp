@@ -21,6 +21,7 @@
 #define EPS 0.000001
 #define MAXANG PI
 #define MINANG 0
+#define DIM 8
 
 Renderer* renderer;
 Scene* scene;
@@ -100,7 +101,7 @@ void initializeContext(){
 }
 
 void updateLightSphericalPosition(float deltaPhi, float deltaTheta){
-	Vec3* molPos = new Vec3(mol->getX(),mol->getY(),mol->getZ());
+	Vec3* molPos = new Vec3(0,0,0);
 	SphericalCoord* sphCoord = new SphericalCoord(light1->getPosition(),molPos);
 	sphCoord->setR(10);
 	float phi = sphCoord->getPhi() + deltaPhi;
@@ -121,7 +122,7 @@ void updateLightSphericalPosition(float deltaPhi, float deltaTheta){
 //move this function as a method of Object3D
 void updateCamSphericalPosition(float deltaPhi, float deltaTheta, float radiusFactor){
 	Camera* camera = scene->getCamera();
-	Vec3* molPos = new Vec3(mol->getX(),mol->getY(),mol->getZ());
+	Vec3* molPos = new Vec3(0,0,0);
 	SphericalCoord* sphCoord = new SphericalCoord(camera->getPosition(),molPos);
 	float r = sphCoord->getR()*radiusFactor;
 	r = fmax(0.2,fmin(99.0,r));
@@ -252,11 +253,25 @@ int main(int argc, char** argv){
 	scanf("%d",&c);*/
 	scene = new Scene();
 	mol = new Molecule("caffeine.pdb");
-	Molecule* newMol = new Molecule(*mol);
-	mol->addToScene(scene);
-	newMol->addToScene(scene);
+	Molecule** molecules = new Molecule*[DIM*DIM*DIM];
+	for(int i =0 ; i < DIM; i++){
+		for(int j=0; j <DIM;j++){
+			for(int k=0; k < DIM; k++){
+				int index = i*DIM*DIM + j*DIM + k;
+				molecules[index] = new Molecule(*mol);
+				molecules[index]->getPosition()->setX(-DIM/2.0 + 10*i);
+				molecules[index]->getPosition()->setY(-DIM/2.0 +12*j);
+				molecules[index]->getPosition()->setZ(-DIM/2.0 +8*k);
+				molecules[index]->addToScene(scene);
+			}
+		}
+	}
+
+	//Molecule* newMol = new Molecule(*mol);
+	//mol->addToScene(scene);
+	//newMol->addToScene(scene);
 	Camera* camera = scene->getCamera();
-	camera->setTarget(new Vec3(mol->getX(),mol->getY(),mol->getZ()));
+	camera->setTarget(new Vec3(0,0,0));
 	light1 = new DirectionalLight();
 	light1->getPosition()->setX(2.0);
 	light1->getPosition()->setY(4.0);
