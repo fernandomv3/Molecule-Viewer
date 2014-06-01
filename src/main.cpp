@@ -21,7 +21,7 @@
 #define EPS 0.000001
 #define MAXANG PI
 #define MINANG 0
-#define DIM 8
+#define DIM 4
 
 Renderer* renderer;
 Scene* scene;
@@ -259,9 +259,9 @@ int main(int argc, char** argv){
 			for(int k=0; k < DIM; k++){
 				int index = i*DIM*DIM + j*DIM + k;
 				molecules[index] = new Molecule(*mol);
-				molecules[index]->getPosition()->setX(-DIM/2.0 + 10*i);
-				molecules[index]->getPosition()->setY(-DIM/2.0 +12*j);
-				molecules[index]->getPosition()->setZ(-DIM/2.0 +8*k);
+				molecules[index]->getPosition()->setX(-DIM*10/2.0 + 10*i);
+				molecules[index]->getPosition()->setY(-DIM*12/2.0 +12*j);
+				molecules[index]->getPosition()->setZ(-DIM*8/2.0 +8*k);
 				molecules[index]->addToScene(scene);
 			}
 		}
