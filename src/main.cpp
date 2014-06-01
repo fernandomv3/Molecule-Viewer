@@ -251,8 +251,10 @@ int main(int argc, char** argv){
 	/*int c;
 	scanf("%d",&c);*/
 	scene = new Scene();
-	mol = new Molecule("dna.pdb");
+	mol = new Molecule("caffeine.pdb");
+	Molecule* newMol = new Molecule(*mol);
 	mol->addToScene(scene);
+	newMol->addToScene(scene);
 	Camera* camera = scene->getCamera();
 	camera->setTarget(new Vec3(mol->getX(),mol->getY(),mol->getZ()));
 	light1 = new DirectionalLight();
@@ -261,12 +263,12 @@ int main(int argc, char** argv){
 	light1->getPosition()->setZ(5.0);
 	light1->getColor()->setRGB(1,1,1);
 	scene->addDirectionalLight(light1);
-	scene->getOctree()->getPosition()->setX(mol->getX());
-	scene->getOctree()->getPosition()->setY(mol->getY());
-	scene->getOctree()->getPosition()->setZ(mol->getZ());
-	/*mol->getPosition()->setX(5);
-	mol->getPosition()->setY(5);
-	mol->getPosition()->setZ(3);*/
+	//scene->getOctree()->getPosition()->setX(mol->getX());
+	//scene->getOctree()->getPosition()->setY(mol->getY());
+	//scene->getOctree()->getPosition()->setZ(mol->getZ());
+	mol->getPosition()->setX(5);
+	mol->getPosition()->setY(6);
+	mol->getPosition()->setZ(4);
 	//scene->generateOctree();
 	renderer = new Renderer();
 	mainLoop();
