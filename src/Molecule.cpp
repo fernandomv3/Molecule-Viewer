@@ -242,11 +242,18 @@ void Molecule::calculateConnections(int num){
 	}
 	for(int i = 0; i < this->numAtoms; i++){
 		for(int j=i+1; j< this->numAtoms;j++){
-			if( this->connections[i][j]){
-				Mesh * bond = createBond(this->atoms[i],this->atoms[j],this->connections[i][j]);
-				bond->setGeometry(geom);
-				bond->setMaterial(mat);
-				this->bonds.push_back(bond);
+			if( this->connections[i][j] > 0){
+				for(int k=0; k < this->connections[i][j] ; k++){
+					Mesh * bond = createBond(this->atoms[i],this->atoms[j],this->connections[i][j]);
+					bond->getScale()->setX(bond->getScale()->getX()/this->connections[i][j]);
+					bond->getScale()->setY(bond->getScale()->getY()/this->connections[i][j]);
+					bond->setGeometry(geom);
+					bond->setMaterial(mat);
+					this->bonds.push_back(bond);
+					if((this->connections[i][j] > 1) && k==0) bond->getPosition()->setY(bond->getPosition()->getY()+(this->connections[i][j]/15.0));
+					if((this->connections[i][j] > 1) && k==1) bond->getPosition()->setY(bond->getPosition()->getY()-(this->connections[i][j]/15.0));
+				}
+				
 			}
 		}
 	}

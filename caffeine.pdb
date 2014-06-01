@@ -22,4 +22,5 @@ ATOM     21  H1  MOL     1       3.882   0.487   5.851   inf   inf
 ATOM     22  H8  MOL     1       2.529  -2.200   4.444   inf   inf              
 ATOM     23  H9  MOL     1       2.003  -2.871   6.003   inf   inf              
 ATOM     24  H10 MOL     1       3.636  -2.190   5.834   inf   inf              
+CONECT    1    2                                                                
 TER                                                                             
