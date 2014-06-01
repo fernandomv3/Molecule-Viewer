@@ -139,7 +139,7 @@ void updateCamSphericalPosition(float deltaPhi, float deltaTheta, float radiusFa
 	delete sphCoord;
 	delete molPos;
 	delete newPos;
-	scene->getOctree()->calculateVisibility(camera);
+	//scene->getOctree()->calculateVisibility(camera);
 }
 
 bool handleEvents(){
@@ -165,37 +165,37 @@ bool handleEvents(){
 						break;
 					case SDLK_l:
 						mol->getPosition()->setX(mol->getPosition()->getX() + 0.5);
-						mol->updateOctreeNode();
-						scene->getOctree()->generateTreeMesh();
+						//mol->updateOctreeNode();
+						//scene->getOctree()->generateTreeMesh();
 						break;
 					case SDLK_j:
 						mol->getPosition()->setX(mol->getPosition()->getX() - 0.5);
-						mol->updateOctreeNode();
-						scene->getOctree()->generateTreeMesh();
+						//mol->updateOctreeNode();
+						//scene->getOctree()->generateTreeMesh();
 						break;
 					case SDLK_i:
 						mol->getPosition()->setY(mol->getPosition()->getY() + 0.5);
-						mol->updateOctreeNode();
-						scene->getOctree()->generateTreeMesh();
+						//mol->updateOctreeNode();
+						//scene->getOctree()->generateTreeMesh();
 						break;
 					case SDLK_k:
 						mol->getPosition()->setY(mol->getPosition()->getY() - 0.5);
-						mol->updateOctreeNode();
-						scene->getOctree()->generateTreeMesh();
+						//mol->updateOctreeNode();
+						//scene->getOctree()->generateTreeMesh();
 						break;
 					case SDLK_u:
 						mol->getPosition()->setZ(mol->getPosition()->getZ() + 0.5);
-						mol->updateOctreeNode();
-						scene->getOctree()->generateTreeMesh();
+						//mol->updateOctreeNode();
+						//scene->getOctree()->generateTreeMesh();
 						break;
 					case SDLK_o:
 						mol->getPosition()->setZ(mol->getPosition()->getZ() - 0.5);
-						mol->updateOctreeNode();
-						scene->getOctree()->generateTreeMesh();
+						//mol->updateOctreeNode();
+						//scene->getOctree()->generateTreeMesh();
 						break;
 					case SDLK_p:
 						printf("printing tree!\n");
-						scene->getOctree()->print();
+						//scene->getOctree()->print();
 						break;
 				}
 				break;
@@ -267,7 +267,7 @@ int main(int argc, char** argv){
 	/*mol->getPosition()->setX(5);
 	mol->getPosition()->setY(5);
 	mol->getPosition()->setZ(3);*/
-	scene->generateOctree();
+	//scene->generateOctree();
 	renderer = new Renderer();
 	mainLoop();
 	cleanUp();
