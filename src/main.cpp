@@ -23,6 +23,7 @@
 #define EPS 0.000001
 #define MAXANG PI
 #define MINANG 0
+#define DIM 4
 
 Renderer* renderer;
 Scene* scene;
@@ -97,7 +98,6 @@ void initializeContext(){
 				glEnable( GL_PROGRAM_POINT_SIZE);
 				int params;
 				glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE,&params);
-				printf("GL_MAX_UNIFORM_BLOCK_SIZE %d\n",params );
 				//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			}
         }
@@ -105,7 +105,7 @@ void initializeContext(){
 }
 
 void updateLightSphericalPosition(float deltaPhi, float deltaTheta){
-	Vec3* molPos = new Vec3(mol->getX(),mol->getY(),mol->getZ());
+	Vec3* molPos = new Vec3(0,0,0);
 	SphericalCoord* sphCoord = new SphericalCoord(light1->getPosition(),molPos);
 	sphCoord->setR(10);
 	float phi = sphCoord->getPhi() + deltaPhi;
@@ -126,7 +126,7 @@ void updateLightSphericalPosition(float deltaPhi, float deltaTheta){
 //move this function as a method of Object3D
 void updateCamSphericalPosition(float deltaPhi, float deltaTheta, float radiusFactor){
 	Camera* camera = scene->getCamera();
-	Vec3* molPos = new Vec3(mol->getX(),mol->getY(),mol->getZ());
+	Vec3* molPos = new Vec3(0,0,0);
 	//Vec3* molPos = new Vec3(0,0,0);
 	SphericalCoord* sphCoord = new SphericalCoord(camera->getPosition(),molPos);
 	float r = sphCoord->getR()*radiusFactor;
@@ -257,38 +257,32 @@ int main(int argc, char** argv){
 	/*int c;
 	scanf("%d",&c);*/
 	scene = new Scene();
-	mol = new Molecule("dna.pdb");
-	mol->addToScene(scene);
-	Camera* camera = scene->getCamera();
-	camera->setTarget(new Vec3(mol->getX(),mol->getY(),mol->getZ()));
-	/*camera->setTarget(new Vec3(0,0,0));
-	Geometry* geom = new Geometry();
-	geom->loadDataFromFile("icosphere.mesh");
-	Material* mat = new TessMaterial();
-	Material* cylMaterial = new PhongMaterial();
-	cylMaterial->getDiffuseColor()->setRGB(0,0,1);
-	cylMaterial->getSpecularColor()->setRGB(0.5,0.5,0.5);
-	cylMaterial->setShininess(1000);
-	mat->getDiffuseColor()->setRGB(1,0,0);
-	mat->getSpecularColor()->setRGB(0.6,0.6,0.6);
-	mat->setShininess(2000);
-	Geometry* cylGeom = new Geometry();
-	cylGeom->loadDataFromFile("cylinder.mesh");
-	Mesh* cylinder = new Mesh(cylGeom,cylMaterial);
-	Mesh* sphere = new Mesh(geom,mat);
-	
-	scene->addObject((Object3D*)sphere);
-	scene->addObject((Object3D*)cylinder);*/
+	mol = new Molecule("caffeine.pdb");
+	Molecule** molecules = new Molecule*[DIM*DIM*DIM];
+	for(int i =0 ; i < DIM; i++){
+		for(int j=0; j <DIM;j++){
+			for(int k=0; k < DIM; k++){
+				int index = i*DIM*DIM + j*DIM + k;
+				molecules[index] = new Molecule(*mol);
+				molecules[index]->getPosition()->setX(-DIM*10/2.0 + 10*i);
+				molecules[index]->getPosition()->setY(-DIM*12/2.0 +12*j);
+				molecules[index]->getPosition()->setZ(-DIM*8/2.0 +8*k);
+				molecules[index]->addToScene(scene);
+			}
+		}
+	}
 
+	Camera* camera = scene->getCamera();
+	camera->setTarget(new Vec3(0,0,0));
 	light1 = new DirectionalLight();
 	light1->getPosition()->setX(2.0);
 	light1->getPosition()->setY(4.0);
 	light1->getPosition()->setZ(5.0);
 	light1->getColor()->setRGB(1,1,1);
 	scene->addDirectionalLight(light1);
-	scene->getOctree()->getPosition()->setX(mol->getX());
-	scene->getOctree()->getPosition()->setY(mol->getY());
-	scene->getOctree()->getPosition()->setZ(mol->getZ());
+	scene->getOctree()->getPosition()->setX(0);
+	scene->getOctree()->getPosition()->setY(0);
+	scene->getOctree()->getPosition()->setZ(0);
 	/*mol->getPosition()->setX(5);
 	mol->getPosition()->setY(5);
 	mol->getPosition()->setZ(3);*/
